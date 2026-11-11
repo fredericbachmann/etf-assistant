@@ -26,3 +26,13 @@ uv run check-facts               # check every citation in the facts files again
 uv run check-facts IE00B4L5Y983  # same for one fund, plus a hand-verification checklist
 uv run check-golden              # resolve expected answers -> evals/golden_v1.resolved.json
 ```
+
+## RAG pipeline
+
+```bash
+uv run ingest                   # PDFs -> Markdown (cached in data/parsed/) -> data/chunks.jsonl
+docker compose up -d            # start OpenSearch on localhost:9200
+uv run index                    # embed chunks (BAAI/bge-small-en-v1.5) and index them
+uv run search "What's the risk score of EIMI?"                      # hybrid (BM25 + vector)
+uv run search "swap fee" --mode bm25 --isin IE00B3YCGJ38 -k 3      # keyword only, one fund
+```

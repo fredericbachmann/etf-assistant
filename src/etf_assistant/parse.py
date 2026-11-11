@@ -1,5 +1,5 @@
 """
-Step 2a: PDF -> Markdown, one string per page.
+PDF -> Markdown, one string per page.
 
 Why Markdown and not plain text? Fund documents keep their facts in tables.
 Plain text (what check_facts.py reads) loses the rows: "Number of stocks" and

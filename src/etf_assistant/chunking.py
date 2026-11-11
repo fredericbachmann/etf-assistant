@@ -1,5 +1,5 @@
 """
-Step 2b: Markdown pages -> chunks.
+Markdown pages -> chunks.
 
 A chunk is the unit of retrieval: the search engine returns chunks, and the
 LLM only sees the chunks it gets. So a chunk should be
@@ -12,9 +12,14 @@ Rules used here:
   1. Never cross a page: every chunk has one exact page for citations.
   2. Split along the document's structure: blocks are paragraphs/tables
      (separated by empty lines); a heading starts a new chunk; consecutive
-     blocks are packed into one chunk up to MAX_CHARS.
-  3. A block longer than MAX_CHARS (legal disclaimers, one long KID paragraph)
+     blocks are packed into one chunk up to max_len.
+  3. A block longer than max_len (legal disclaimers, one long KID paragraph)
      is split by lines (tables) or sentences (prose).
+
+Size is measured by a `length` function. ingest.py passes the embedding
+model's token counter: the model reads at most 512 tokens, and Markdown tables
+use far more tokens per character than prose (a 1,000-character table can be
+800 tokens), so a character limit can't guarantee a chunk fits.
   4. Each chunk gets a context header (fund, ISIN, document, page, section)
      before it is embedded. The cost table on KID p.3 never names the fund;
      without the header, the costs of all 11 funds look identical to search.
@@ -26,13 +31,15 @@ this is the place to revisit.
 """
 
 import re
+from collections.abc import Callable
 from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel
 
-MAX_CHARS = 1500  # ~350-400 tokens; leaves room for the header within a 512-token embedding model
-MIN_CHARS = 300  # a heading only starts a new chunk if the current one has at least this much text
+# Defaults in characters, for use without a tokenizer. ingest.py uses token limits instead.
+MAX_CHARS = 1500
+MIN_CHARS = 300  # a heading only starts a new chunk if the current one is at least this long
 
 HEADING = re.compile(r"^#{1,6}\s+(.+)$")
 
@@ -68,27 +75,33 @@ def shorten(section: str, limit: int = 120) -> str:
     return section if len(section) <= limit else section[: limit - 1].rstrip() + "…"
 
 
-def split_oversized(block: str) -> list[str]:
-    """Split a block longer than MAX_CHARS by lines (tables, lists) or else by sentences."""
-    if len(block) <= MAX_CHARS:
+def split_oversized(block: str, length: Callable[[str], int], max_len: int) -> list[str]:
+    """Split a block longer than max_len by lines (tables, lists) or else by sentences."""
+    if length(block) <= max_len:
         return [block]
     lines = block.split("\n")
     units, sep = (lines, "\n") if len(lines) > 1 else (re.split(r"(?<=[.;])\s+", block), " ")
     pieces, cur = [], ""
     for u in units:
-        if cur and len(cur) + len(sep) + len(u) > MAX_CHARS:
+        if cur and length(f"{cur}{sep}{u}") > max_len:
             pieces.append(cur)
             cur = u
         else:
             cur = f"{cur}{sep}{u}" if cur else u
     pieces.append(cur)
-    # a single line/sentence can still exceed MAX_CHARS; rare, and we keep it whole
+    # a single line/sentence can still exceed max_len; rare, and we keep it whole
     return pieces
 
 
 def chunk_pages(pages: list[str], *, isin: str, fund_name: str, doc_type: str,
-                as_of_date: date, source_file: str) -> list[Chunk]:
+                as_of_date: date, source_file: str,
+                length: Callable[[str], int] = len,
+                max_len: int = MAX_CHARS, min_len: int = MIN_CHARS) -> list[Chunk]:
     chunks: list[Chunk] = []
+
+    def size(blocks: list[str]) -> int:
+        return length("\n\n".join(blocks)) if blocks else 0
+
     section = ""  # carried across pages: a section that starts on p.2 can continue on p.3
 
     for page_no, md in enumerate(pages, 1):
@@ -113,12 +126,12 @@ def chunk_pages(pages: list[str], *, isin: str, fund_name: str, doc_type: str,
             if not block:
                 continue
             if h := heading_text(block):
-                if sum(map(len, buf)) >= MIN_CHARS:
+                if size(buf) >= min_len:
                     flush()  # rule 2: a heading starts a new chunk...
                 section = h  # ...unless the current one is tiny; then it joins it
                 headings.append(h)
-            for piece in split_oversized(block):
-                if buf and sum(map(len, buf)) + len(piece) > MAX_CHARS:
+            for piece in split_oversized(block, length, max_len):
+                if buf and size(buf + [piece]) > max_len:
                     flush()
                 buf.append(piece)
         flush()  # rule 1: end of page ends the chunk

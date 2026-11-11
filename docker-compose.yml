@@ -1,0 +1,24 @@
+# Local OpenSearch for development: `docker compose up -d`, stop with `docker compose down`.
+# Data survives restarts in the named volume; `docker compose down -v` deletes it.
+services:
+  opensearch:
+    image: opensearchproject/opensearch:3.8.0
+    container_name: etf-opensearch
+    environment:
+      - discovery.type=single-node # one node, no cluster
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m # JVM heap; plenty for a few hundred chunks
+      # No TLS/passwords locally. NEVER do this on a server reachable from the internet;
+      # on AWS the managed service handles authentication.
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ports:
+      - "127.0.0.1:9200:9200" # REST API, reachable from this machine only
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      retries: 30
+
+volumes:
+  opensearch-data:

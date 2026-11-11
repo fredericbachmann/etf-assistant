@@ -1,5 +1,5 @@
 """
-Step 2: parse every PDF in the manifest, chunk it, write data/chunks.jsonl, and report.
+Parse every PDF in the manifest, chunk it, write data/chunks.jsonl, and report.
 
 Usage:
   uv run ingest            # parse (cached), chunk, report
@@ -19,11 +19,17 @@ import sys
 from collections import Counter
 
 from etf_assistant.check_facts import norm
-from etf_assistant.chunking import MAX_CHARS, Chunk, chunk_pages
+from etf_assistant.chunking import Chunk, chunk_pages
+from etf_assistant.embeddings import MAX_TOKENS, count_tokens
 from etf_assistant.fund_facts import FundFacts, Sourced
 from etf_assistant.manifest import load_manifest, parse_us_date
 from etf_assistant.parse import load_pages
 from etf_assistant.paths import CHUNKS, DATA, FACTS
+
+# Chunk text budget in embedding-model tokens. The context header (~30-60 tokens)
+# is added before embedding, so leave room for it below MAX_TOKENS=512.
+CHUNK_MAX_TOKENS = 420
+CHUNK_MIN_TOKENS = 70
 
 
 def display_name(facts: FundFacts) -> str:
@@ -46,6 +52,7 @@ def build_chunks(force: bool = False) -> list[Chunk]:
             doc_type=doc_type,
             as_of_date=parse_us_date(row["as_of_date"]),
             source_file=row["file_path"],
+            length=count_tokens, max_len=CHUNK_MAX_TOKENS, min_len=CHUNK_MIN_TOKENS,
         )
     return chunks
 
@@ -87,10 +94,12 @@ def fact_coverage(chunks: list[Chunk]) -> tuple[int, list[str]]:
 
 def report(chunks: list[Chunk]) -> None:
     sizes = [len(c.text) for c in chunks]
+    tokens = [count_tokens(c.embedding_text()) for c in chunks]
     per_doc = Counter((c.isin, c.doc_type) for c in chunks)
     print(f"\n{len(chunks)} chunks from {len(per_doc)} documents -> {CHUNKS.relative_to(DATA.parent)}")
-    print(f"chunk size (chars): min {min(sizes)}, median {int(statistics.median(sizes))}, "
-          f"max {max(sizes)}; {sum(s > MAX_CHARS for s in sizes)} over MAX_CHARS={MAX_CHARS}")
+    print(f"chunk size (chars):  min {min(sizes)}, median {int(statistics.median(sizes))}, max {max(sizes)}")
+    print(f"embedded tokens:     min {min(tokens)}, median {int(statistics.median(tokens))}, max {max(tokens)}; "
+          f"{sum(t > MAX_TOKENS for t in tokens)} over the model's {MAX_TOKENS} (would be truncated)")
     for doc_type in ("kid", "factsheet"):
         counts = [n for (_, t), n in per_doc.items() if t == doc_type]
         print(f"{doc_type:9}: {len(counts)} docs, {min(counts)}-{max(counts)} chunks each")
