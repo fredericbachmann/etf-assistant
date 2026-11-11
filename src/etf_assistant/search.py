@@ -48,6 +48,45 @@ def client() -> OpenSearch:
 
 # --------------------------------------------------------------------------- index
 
+# Issuers name the same thing differently, and users use yet other words: "TER" is
+# "Total Expense Ratio" (iShares), "Ongoing Charges Figure" (Vanguard), "All-in fee"
+# (Xtrackers). BM25 only matches words that occur, so at search time each term
+# below is expanded to its whole group. Taken from the documents' own labels.
+SYNONYMS = [
+    "ter, total expense ratio, expense ratio, ongoing charges figure, ongoing charge, ocf, all-in fee",
+    "sri, summary risk indicator, risk indicator, risk score, risk class",
+    "kid, key information document",
+    "fund size, aum, net assets, total assets, total fund assets",
+    "number of holdings, number of stocks, holdings count",
+    "launch date, inception date, launched",
+    "accumulating, accumulation, capitalizing, capitalising, reinvested",
+    "replication, replicate, methodology, investment method",
+]
+
+# Analyzers turn text into the terms BM25 matches. This rebuilds OpenSearch's
+# built-in "english" analyzer from its parts, plus the synonyms for queries.
+ANALYSIS = {
+    "filter": {
+        "english_possessive_stemmer": {"type": "stemmer", "language": "possessive_english"},
+        "english_stop": {"type": "stop", "stopwords": "_english_"},
+        "english_stemmer": {"type": "stemmer", "language": "english"},
+        # synonym_graph handles multi-word synonyms correctly, but only at search time
+        "etf_synonyms": {"type": "synonym_graph", "synonyms": SYNONYMS},
+    },
+    "analyzer": {
+        "etf_index": {
+            "tokenizer": "standard",
+            "filter": ["english_possessive_stemmer", "lowercase", "english_stop", "english_stemmer"],
+        },
+        "etf_search": {
+            "tokenizer": "standard",
+            # synonyms before stop-word removal: rules like "number of holdings" contain stop words
+            "filter": ["english_possessive_stemmer", "lowercase", "etf_synonyms", "english_stop",
+                       "english_stemmer"],
+        },
+    },
+}
+
 # The mapping tells OpenSearch what each field is and how to index it.
 INDEX_BODY = {
     "settings": {
@@ -55,7 +94,8 @@ INDEX_BODY = {
             "knn": True,  # enable the k-NN (vector) plugin for this index
             "number_of_shards": 1,  # a few hundred documents: one shard, no replicas
             "number_of_replicas": 0,
-        }
+        },
+        "analysis": ANALYSIS,
     },
     "mappings": {
         # metadata stored with the index: which model made the vectors (checked when searching)
@@ -72,9 +112,10 @@ INDEX_BODY = {
             "section": {"type": "keyword"},
             # the original chunk text, returned with hits; stored but not searched
             "text": {"type": "text", "index": False},
-            # what BM25 searches: header + text. The "english" analyzer lowercases,
-            # drops stop words and stems ("charges" -> "charg", "holding" -> "hold").
-            "search_text": {"type": "text", "analyzer": "english"},
+            # what BM25 searches: header + text. The analyzers lowercase, drop stop
+            # words and stem ("charges" -> "charg", "holding" -> "hold"); queries
+            # additionally get the synonym expansion.
+            "search_text": {"type": "text", "analyzer": "etf_index", "search_analyzer": "etf_search"},
             # what vector search searches: the embedding of header + text
             "embedding": {
                 "type": "knn_vector",
