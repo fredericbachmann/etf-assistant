@@ -9,3 +9,4 @@ MANIFEST = ROOT / "manifest.csv"
 EVALS = ROOT / "evals"
 PARSED = DATA / "parsed"  # cached Markdown per PDF
 CHUNKS = DATA / "chunks.jsonl"  # all chunks, one JSON object per line
+EMBEDDING_CACHE = DATA / "embedding_cache"  # passage vectors, so re-indexing needn't re-embed

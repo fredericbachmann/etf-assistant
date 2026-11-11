@@ -36,3 +36,12 @@ uv run index                    # embed chunks (BAAI/bge-small-en-v1.5) and inde
 uv run search "What's the risk score of EIMI?"                      # hybrid (BM25 + vector)
 uv run search "swap fee" --mode bm25 --isin IE00B3YCGJ38 -k 3      # keyword only, one fund
 ```
+
+## Evaluation
+
+```bash
+uv run eval-retrieval                 # Recall@k / MRR for BM25, vector, hybrid (with and without ISIN filter)
+uv run eval-retrieval --show-misses   # plus the golden questions whose evidence isn't in the top 5
+```
+
+Results are written to `evals/results/` so runs can be compared over time.

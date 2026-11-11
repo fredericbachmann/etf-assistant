@@ -24,6 +24,7 @@ Usage:
 import argparse
 import os
 import time
+from functools import cache
 from typing import Literal
 
 from opensearchpy import OpenSearch, helpers
@@ -40,6 +41,7 @@ HYBRID_WEIGHTS = [0.5, 0.5]  # [bm25, vector]; a knob to tune with the evals
 Mode = Literal["bm25", "vector", "hybrid"]
 
 
+@cache  # one connection pool per process
 def client() -> OpenSearch:
     return OpenSearch(hosts=[os.environ.get("OPENSEARCH_URL", "http://localhost:9200")])
 
@@ -56,6 +58,8 @@ INDEX_BODY = {
         }
     },
     "mappings": {
+        # metadata stored with the index: which model made the vectors (checked when searching)
+        "_meta": {"embedding_model": MODEL_NAME},
         "properties": {
             # keyword = exact value, for filtering ("only IE00B4L5Y983")
             "chunk_id": {"type": "keyword"},
@@ -159,8 +163,19 @@ def _knn_query(query: str, k: int, filters: list[dict]) -> dict:
     return {"knn": {"embedding": knn}}
 
 
+@cache
+def check_index_model() -> None:
+    """Query vectors must come from the same model as the indexed vectors."""
+    meta = client().indices.get_mapping(index=INDEX)[INDEX]["mappings"].get("_meta", {})
+    if (indexed := meta.get("embedding_model")) != MODEL_NAME:
+        raise SystemExit(f"index '{INDEX}' was built with {indexed}, but EMBEDDING_MODEL is {MODEL_NAME}. "
+                         f"Rebuild it (uv run index) or set EMBEDDING_MODEL={indexed}")
+
+
 def search(query: str, k: int = 5, mode: Mode = "hybrid",
            isin: str | None = None, doc_type: str | None = None) -> list[Hit]:
+    if mode != "bm25":
+        check_index_model()
     filters = _filters(isin, doc_type)
     candidates = max(k * 4, 20)  # hybrid combines two candidate lists; look a bit deeper than k
     params = {}

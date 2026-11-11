@@ -7,9 +7,8 @@ directions. "What are the ongoing charges?" lands near a chunk containing
 "Management fees and other administrative or operating costs 0.20%", even
 though they share almost no words. That's what keyword search can't do.
 
-Model: BAAI/bge-small-en-v1.5, run locally via fastembed (ONNX, CPU, ~67 MB).
-Free, fast, and a well-known baseline; a bigger model is an experiment for the
-evals to judge later.
+Models run locally via fastembed (ONNX, CPU). Default: BAAI/bge-small-en-v1.5
+(~67 MB); larger ones are listed in MODELS and chosen with EMBEDDING_MODEL.
 
 Two details that matter:
   - Max 512 tokens. Anything longer is silently cut off, so the chunker
@@ -19,15 +18,35 @@ Two details that matter:
     the prefix for us, so embed_query() does.
 """
 
-from functools import cache
+import hashlib
+import json
+import os
+from functools import cache, lru_cache
 
 from fastembed import TextEmbedding
 from tokenizers import Tokenizer
 
-MODEL_NAME = "BAAI/bge-small-en-v1.5"
-DIM = 384  # vector length; the OpenSearch index must be created with the same number
+from etf_assistant.paths import EMBEDDING_CACHE
+
+BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
+
+# model -> (vector length, prefix for queries). All of these share BERT's
+# tokenizer and 512-token limit, so the chunks are identical for every model
+# and a comparison changes only the model.
+MODELS = {
+    "BAAI/bge-small-en-v1.5": (384, BGE_QUERY_PREFIX),  # 33M parameters
+    "BAAI/bge-base-en-v1.5": (768, BGE_QUERY_PREFIX),  # 110M
+    "BAAI/bge-large-en-v1.5": (1024, BGE_QUERY_PREFIX),  # 335M
+    "mixedbread-ai/mxbai-embed-large-v1": (1024, BGE_QUERY_PREFIX),  # 335M, trained with the same prompt
+}
+
+# Pick the model with an environment variable, e.g.
+#   EMBEDDING_MODEL=BAAI/bge-base-en-v1.5 uv run index
+MODEL_NAME = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+if MODEL_NAME not in MODELS:
+    raise SystemExit(f"EMBEDDING_MODEL={MODEL_NAME!r} not configured; choose from {list(MODELS)}")
+DIM, QUERY_PREFIX = MODELS[MODEL_NAME]  # the OpenSearch index must be created with this DIM
 MAX_TOKENS = 512
-QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 
 
 @cache  # load the model once per process (first run downloads it to a cache)
@@ -51,8 +70,19 @@ def count_tokens(text: str) -> int:
 
 
 def embed_passages(texts: list[str]) -> list[list[float]]:
-    return [v.tolist() for v in _model().passage_embed(texts)]
+    """Vectors for `texts`. Cached on disk by text hash: only new or changed chunks are embedded."""
+    path = EMBEDDING_CACHE / f"{MODEL_NAME.replace('/', '__')}.json"
+    cached: dict[str, list[float]] = json.loads(path.read_text()) if path.exists() else {}
+    keys = [hashlib.sha1(t.encode()).hexdigest() for t in texts]
+    todo = [(k, t) for k, t in dict(zip(keys, texts)).items() if k not in cached]
+    if todo:
+        vectors = _model().passage_embed([t for _, t in todo])
+        cached.update({k: v.tolist() for (k, _), v in zip(todo, vectors)})
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(cached))
+    return [cached[k] for k in keys]
 
 
+@lru_cache(maxsize=4096)  # evals send the same question once per search mode
 def embed_query(query: str) -> list[float]:
     return next(iter(_model().query_embed(QUERY_PREFIX + query))).tolist()
