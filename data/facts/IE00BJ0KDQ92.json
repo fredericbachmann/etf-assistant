@@ -109,6 +109,6 @@
         "quote": null
     },
     "factsheet_as_of": "2026-09-30",
-    "verified": false,
+    "verified": true,
     "notes": "ter_pct is the factsheet's 'All-in fee'. replication=physical_full read from 'Direct Replication (physically)' (DWS calls sampling 'Optimized'); the KID wording alone was ambiguous. holdings_count is None: the factsheet only gives the INDEX constituent count (1.283, European thousands separator), not the fund's. KID dated 06.03.2026 (older than the others). currency_hedged=False is inferred: neither document mentions hedging."
 }

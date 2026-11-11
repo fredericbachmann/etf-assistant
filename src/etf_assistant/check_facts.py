@@ -14,7 +14,6 @@ Usage:
   uv run check-facts IE00B4L5Y983   # one fund, with a full checklist
 """
 
-import csv
 import json
 import re
 import sys
@@ -26,7 +25,8 @@ from pathlib import Path
 import pymupdf
 
 from etf_assistant.fund_facts import FundFacts, Sourced
-from etf_assistant.paths import DATA, FACTS, MANIFEST
+from etf_assistant.manifest import load_manifest
+from etf_assistant.paths import DATA, FACTS
 
 # Keywords that must appear in the quote for enum / bool values.
 KEYWORDS = {
@@ -40,11 +40,6 @@ KEYWORDS = {
         "synthetic": r"synthetic|swap",
     },
 }
-
-
-def load_manifest() -> dict[tuple[str, str], dict]:
-    with open(MANIFEST, encoding="utf-8-sig", newline="") as f:
-        return {(r["isin"], r["doc_type"]): r for r in csv.DictReader(f)}
 
 
 @cache

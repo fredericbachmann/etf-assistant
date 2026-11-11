@@ -7,3 +7,5 @@ DATA = ROOT / "data"
 FACTS = DATA / "facts"
 MANIFEST = ROOT / "manifest.csv"
 EVALS = ROOT / "evals"
+PARSED = DATA / "parsed"  # cached Markdown per PDF (step 2a)
+CHUNKS = DATA / "chunks.jsonl"  # all chunks, one JSON object per line (step 2b)

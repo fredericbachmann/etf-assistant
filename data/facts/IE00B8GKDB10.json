@@ -109,6 +109,6 @@
         "quote": "Number of stocks 2,440"
     },
     "factsheet_as_of": "2026-09-30",
-    "verified": false,
+    "verified": true,
     "notes": "Factsheet values have a column layout (labels and values printed in separate blocks), so some quotes hold only the value run, e.g. 'Distributed Quarterly'. ter_pct is the factsheet's Ongoing Charges Figure (Vanguard doesn't print a 'TER'). fund_size is total fund assets across share classes; share class assets: USD 11,183m. launch_date is the share class inception date. holdings_count is the fund column (benchmark: 2,467). currency_hedged=False is inferred: neither document mentions hedging."
 }

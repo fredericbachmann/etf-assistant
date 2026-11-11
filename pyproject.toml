@@ -16,6 +16,7 @@ dependencies = [
 # `uv run check-facts` / `uv run check-golden` call these functions
 check-facts = "etf_assistant.check_facts:cli"
 check-golden = "etf_assistant.check_golden:main"
+ingest = "etf_assistant.ingest:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
