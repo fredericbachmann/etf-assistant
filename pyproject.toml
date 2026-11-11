@@ -1,0 +1,22 @@
+[project]
+name = "etf-assistant"
+version = "0.1.0"
+description = "RAG chatbot that answers questions about ETFs from their KIDs and factsheets, with an evaluation pipeline."
+readme = "README.md"
+authors = [{ name = "Frederic Bachmann" }]
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.14",    # data schemas (FundFacts) + validation
+    "pymupdf>=2.1",      # read PDF text page by page
+    "pymupdf4llm>=2.1",  # PDF -> Markdown for chunking (next step)
+    "pyyaml>=6.0",       # golden test set is YAML
+]
+
+[project.scripts]
+# `uv run check-facts` / `uv run check-golden` call these functions
+check-facts = "etf_assistant.check_facts:cli"
+check-golden = "etf_assistant.check_golden:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"

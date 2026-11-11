@@ -1,0 +1,114 @@
+{
+    "isin": "IE00B4L5Y983",
+    "fund_name": {
+        "value": "iShares Core MSCI World UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "iShares Core MSCI World UCITS ETF"
+    },
+    "issuer": {
+        "value": "iShares III plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Issuing Company : iShares III plc"
+    },
+    "index_name": {
+        "value": "MSCI World Index (Net)",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI World Index (Net)"
+    },
+    "ter_pct": {
+        "value": 0.2,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total Expense Ratio : 0.20%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.2,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.20% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.0,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.00% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 2,
+        "quote": "We have classified this product as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period : 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Use of Income : Accumulating"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "physical_sampling",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Methodology : Optimised"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI World Index (Net)"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile : Ireland"
+    },
+    "fund_currency": {
+        "value": "USD",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Currency : USD"
+    },
+    "launch_date": {
+        "value": "2009-09-25",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Launch Date : 25-Sep-2009"
+    },
+    "fund_size": {
+        "value": "USD 150,680.95m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Net Assets of Fund (M) : 150,680.95 USD"
+    },
+    "holdings_count": {
+        "value": 1250,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Number of Holdings : 1,250"
+    },
+    "factsheet_as_of": "2026-10-31",
+    "verified": true,
+    "notes": "currency_hedged=False is inferred: neither document mentions hedging. fund_size is fund-level net assets; share class net assets: USD 146,648.56m. "
+}

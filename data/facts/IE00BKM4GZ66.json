@@ -1,0 +1,114 @@
+{
+    "isin": "IE00BKM4GZ66",
+    "fund_name": {
+        "value": "iShares Core MSCI EM IMI UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "iShares Core MSCI EM IMI UCITS ETF"
+    },
+    "issuer": {
+        "value": "iShares plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Issuing Company : iShares plc"
+    },
+    "index_name": {
+        "value": "MSCI Emerging Markets Investable Market Index (USD) (Net)",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI Emerging Markets Investable Market Index (USD) (Net)"
+    },
+    "ter_pct": {
+        "value": 0.18,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total Expense Ratio : 0.18%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.18,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.18% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.04,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.04% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 2,
+        "quote": "We have classified this product as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period : 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Use of Income : Accumulating"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "physical_full",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Methodology : Replicated"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI Emerging Markets Investable Market Index (USD) (Net)"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile : Ireland"
+    },
+    "fund_currency": {
+        "value": "USD",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Currency : USD"
+    },
+    "launch_date": {
+        "value": "2014-05-30",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Launch Date : 30-May-2014"
+    },
+    "fund_size": {
+        "value": "USD 43,355.63m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Net Assets of Fund (M) : 43,355.63 USD"
+    },
+    "holdings_count": {
+        "value": 2949,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Number of Holdings : 2,949"
+    },
+    "factsheet_as_of": "2026-10-31",
+    "verified": true,
+    "notes": "Replication: factsheet says 'Replicated' and KID says 'intends to replicate the Index'. currency_hedged=False is inferred: neither document mentions hedging. fund_size is fund-level net assets; share class net assets: USD 41,768.87m. "
+}

@@ -1,0 +1,114 @@
+{
+    "isin": "IE00BK5BQT80",
+    "fund_name": {
+        "value": "Vanguard FTSE All-World UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "Product: Vanguard FTSE All-World UCITS ETF"
+    },
+    "issuer": {
+        "value": "Vanguard Funds plc",
+        "doc": "kid",
+        "page": 1,
+        "quote": "The Fund is a sub-fund of Vanguard Funds plc"
+    },
+    "index_name": {
+        "value": "FTSE All-World Index",
+        "doc": "kid",
+        "page": 1,
+        "quote": "seeks to track the performance of the FTSE All-World Index"
+    },
+    "ter_pct": {
+        "value": 0.14,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Ongoing Charges Figure† 0.14%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.14,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.14% of the value of your investment p.a."
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.02,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.02% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 1,
+        "quote": "We have classified this Fund as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period: 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "kid",
+        "page": 1,
+        "quote": "Income from the ETF Shares will be reinvested"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "physical_sampling",
+        "doc": "kid",
+        "page": 1,
+        "quote": "investing through physical acquisition in a representative sample of Index constituent securities"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "kid",
+        "page": 1,
+        "quote": "The Fund invests in securities which are denominated in currencies other than the base currency."
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "kid",
+        "page": 1,
+        "quote": "The Fund is authorised in Ireland"
+    },
+    "fund_currency": {
+        "value": "USD",
+        "doc": "kid",
+        "page": 1,
+        "quote": "(USD) Accumulating Shares"
+    },
+    "launch_date": {
+        "value": "2019-07-23",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Inception date: 23 July 2019"
+    },
+    "fund_size": {
+        "value": "USD 87,295m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total assets (million) $87,295"
+    },
+    "holdings_count": {
+        "value": 3821,
+        "doc": "factsheet",
+        "page": 3,
+        "quote": "Number of stocks 3,821"
+    },
+    "factsheet_as_of": "2026-09-30",
+    "verified": false,
+    "notes": "Factsheet values have a column layout (labels and values printed in separate blocks), so some quotes hold only the value run, e.g. 'Distributed Quarterly'. ter_pct is the factsheet's Ongoing Charges Figure (Vanguard doesn't print a 'TER'). fund_size is total fund assets across share classes; share class assets: USD 60,194m. launch_date is the share class inception date. holdings_count is the fund column (benchmark: 4,203). Factsheet dividend schedule is '—' (accumulating). Accumulating twin of IE00B3RBWM25 (same fund, same costs). currency_hedged=False is inferred: neither document mentions hedging."
+}

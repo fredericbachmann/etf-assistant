@@ -1,0 +1,114 @@
+{
+    "isin": "IE00B3YCGJ38",
+    "fund_name": {
+        "value": "Invesco S&P 500 UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "Invesco S&P 500 UCITS ETF (the \"Fund\")"
+    },
+    "issuer": {
+        "value": "Invesco Markets plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Umbrella fund Invesco Markets plc"
+    },
+    "index_name": {
+        "value": "S&P 500 Index",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Index S&P 500 Index"
+    },
+    "ter_pct": {
+        "value": 0.05,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Ongoing charge 1 0.05% p.a."
+    },
+    "swap_fee_pct": {
+        "value": 0.07,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Swap fee 1 0.07% p.a."
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.05,
+        "doc": "kid",
+        "page": 2,
+        "quote": "0.05% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "0.00% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 1,
+        "quote": "We have classified this product as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period: 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Dividend treatment Accumulating"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "synthetic",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Replication method Synthetic"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Currency hedged No"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile Ireland"
+    },
+    "fund_currency": {
+        "value": "USD",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share class currency USD"
+    },
+    "launch_date": {
+        "value": "2010-05-20",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share class launch date 20 May 2010"
+    },
+    "fund_size": {
+        "value": "USD 58,957.64m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Fund size USD 58,957.64m"
+    },
+    "holdings_count": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "factsheet_as_of": "2026-09-30",
+    "verified": true,
+    "notes": "TEST CASE: swap-based. The 0.07% swap fee is not in the KID ongoing costs (0.05%); factsheet says it is embedded in the swap return and not charged separately. holdings_count is None: factsheet refers to etf.invesco.com for holdings. Share class had a 100:1 split on 15-Dec-2025."
+}

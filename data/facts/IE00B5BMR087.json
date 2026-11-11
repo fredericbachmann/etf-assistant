@@ -1,0 +1,114 @@
+{
+    "isin": "IE00B5BMR087",
+    "fund_name": {
+        "value": "iShares Core S&P 500 UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "iShares Core S&P 500 UCITS ETF"
+    },
+    "issuer": {
+        "value": "iShares VII plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Issuing Company : iShares VII plc"
+    },
+    "index_name": {
+        "value": "S&P 500 Index",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : S&P 500 Index"
+    },
+    "ter_pct": {
+        "value": 0.07,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total Expense Ratio : 0.07%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.07,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.07% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.0,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.00% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 2,
+        "quote": "We have classified this product as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period : 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Use of Income : Accumulating"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "physical_full",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Methodology : Physical Replication"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : S&P 500 Index"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile : Ireland"
+    },
+    "fund_currency": {
+        "value": "USD",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Currency : USD"
+    },
+    "launch_date": {
+        "value": "2010-05-19",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Launch Date : 19-May-2010"
+    },
+    "fund_size": {
+        "value": "USD 157,627.72m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Net Assets of Fund (M) : 157,627.72 USD"
+    },
+    "holdings_count": {
+        "value": 504,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Number of Holdings : 504"
+    },
+    "factsheet_as_of": "2026-09-30",
+    "verified": true,
+    "notes": "TEST CASE: share class launched 19-May-2010 but Fund Launch Date is 18-May-2010; launch_date uses the share class. currency_hedged=False is inferred: neither document mentions hedging. fund_size is fund-level net assets; share class net assets: USD 154,477.00m. Factsheet is the September edition (as-of 30-Sep-2026)."
+}

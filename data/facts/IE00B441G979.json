@@ -1,0 +1,114 @@
+{
+    "isin": "IE00B441G979",
+    "fund_name": {
+        "value": "iShares MSCI World EUR Hedged UCITS ETF (Acc)",
+        "doc": "kid",
+        "page": 1,
+        "quote": "iShares MSCI World EUR Hedged UCITS ETF (Acc)"
+    },
+    "issuer": {
+        "value": "iShares V plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Issuing Company : iShares V plc"
+    },
+    "index_name": {
+        "value": "MSCI World 100% Hedged to EUR Index (EUR)",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI World 100% Hedged to EUR Index (EUR)"
+    },
+    "ter_pct": {
+        "value": 0.55,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total Expense Ratio : 0.55%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.55,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.55% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.01,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.01% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 4,
+        "doc": "kid",
+        "page": 2,
+        "quote": "We have classified this product as 4 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 5.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period : 5 years"
+    },
+    "distribution_policy": {
+        "value": "accumulating",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Use of Income : Accumulating"
+    },
+    "distribution_frequency": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "replication": {
+        "value": "physical_sampling",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Methodology : Optimised"
+    },
+    "currency_hedged": {
+        "value": true,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : MSCI World 100% Hedged to EUR Index (EUR)"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile : Ireland"
+    },
+    "fund_currency": {
+        "value": "EUR",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Currency : EUR"
+    },
+    "launch_date": {
+        "value": "2010-09-30",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Launch Date : 30-Sep-2010"
+    },
+    "fund_size": {
+        "value": "EUR 5,324.82m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Net Assets of Fund (M) : 5,324.82 EUR"
+    },
+    "holdings_count": {
+        "value": 1248,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Number of Holdings : 1,248"
+    },
+    "factsheet_as_of": "2026-10-31",
+    "verified": true,
+    "notes": "Hedged to EUR via one-month FX forwards (KID p.1). Share class and fund net assets are equal."
+}

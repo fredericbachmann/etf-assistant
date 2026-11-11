@@ -1,0 +1,114 @@
+{
+    "isin": "IE00B4WXJJ64",
+    "fund_name": {
+        "value": "iShares Core € Govt Bond UCITS ETF",
+        "doc": "kid",
+        "page": 1,
+        "quote": "iShares Core € Govt Bond UCITS ETF"
+    },
+    "issuer": {
+        "value": "iShares III plc",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Issuing Company : iShares III plc"
+    },
+    "index_name": {
+        "value": "Bloomberg Euro Treasury Bond Index",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : Bloomberg Euro Treasury Bond Index"
+    },
+    "ter_pct": {
+        "value": 0.07,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Total Expense Ratio : 0.07%"
+    },
+    "swap_fee_pct": {
+        "value": null,
+        "doc": null,
+        "page": null,
+        "quote": null
+    },
+    "kid_ongoing_costs_pct": {
+        "value": 0.07,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.07% of the value of your investment per year"
+    },
+    "kid_transaction_costs_pct": {
+        "value": 0.01,
+        "doc": "kid",
+        "page": 3,
+        "quote": "0.01% of the value of your investment per year"
+    },
+    "sri": {
+        "value": 3,
+        "doc": "kid",
+        "page": 2,
+        "quote": "We have classified this product as 3 out of 7"
+    },
+    "recommended_holding_period_years": {
+        "value": 3.0,
+        "doc": "kid",
+        "page": 2,
+        "quote": "Recommended holding period : 3 years"
+    },
+    "distribution_policy": {
+        "value": "distributing",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Use of Income : Distributing"
+    },
+    "distribution_frequency": {
+        "value": "semi-annual",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Distribution Frequency : Semi-Annual"
+    },
+    "replication": {
+        "value": "physical_sampling",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Methodology : Sampled"
+    },
+    "currency_hedged": {
+        "value": false,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Benchmark : Bloomberg Euro Treasury Bond Index"
+    },
+    "domicile": {
+        "value": "Ireland",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Domicile : Ireland"
+    },
+    "fund_currency": {
+        "value": "EUR",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Currency : EUR"
+    },
+    "launch_date": {
+        "value": "2009-04-17",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Share Class Launch Date : 17-Apr-2009"
+    },
+    "fund_size": {
+        "value": "EUR 6,272.94m",
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Net Assets of Fund (M) : 6,272.94 EUR"
+    },
+    "holdings_count": {
+        "value": 551,
+        "doc": "factsheet",
+        "page": 1,
+        "quote": "Number of Holdings : 551"
+    },
+    "factsheet_as_of": "2026-10-31",
+    "verified": true,
+    "notes": "Bond fund; EUR-denominated index so hedging does not apply (value False). fund_size is fund-level net assets; share class net assets: EUR 5,383.05m. "
+}
