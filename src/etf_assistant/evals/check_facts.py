@@ -14,18 +14,17 @@ Usage:
   uv run check-facts IE00B4L5Y983   # one fund, with a full checklist
 """
 
-import json
 import re
 import sys
-import unicodedata
 from datetime import date, datetime
 from functools import cache
 from pathlib import Path
 
 import pymupdf
 
-from etf_assistant.fund_facts import FundFacts, Sourced
-from etf_assistant.manifest import load_manifest
+from etf_assistant.corpus.manifest import load_manifest
+from etf_assistant.evals.fund_facts import FundFacts, Sourced
+from etf_assistant.evals.textmatch import norm
 from etf_assistant.paths import DATA, FACTS
 
 # Keywords that must appear in the quote for enum / bool values.
@@ -46,11 +45,6 @@ KEYWORDS = {
 def page_texts(pdf: Path) -> list[str]:
     with pymupdf.open(pdf) as doc:
         return [norm(p.get_text()) for p in doc]
-
-
-def norm(s: str) -> str:
-    s = unicodedata.normalize("NFKC", s)
-    return re.sub(r"\s+", " ", s).strip()
 
 
 def numbers_in(s: str) -> list[float]:

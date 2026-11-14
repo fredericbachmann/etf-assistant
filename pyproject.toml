@@ -16,18 +16,27 @@ dependencies = [
 ]
 
 [project.scripts]
-# `uv run check-facts` / `uv run check-golden` call these functions
-check-facts = "etf_assistant.check_facts:cli"
-check-golden = "etf_assistant.check_golden:main"
-ingest = "etf_assistant.ingest:main"
-build-catalog = "etf_assistant.catalog:main"
-index = "etf_assistant.search:index_cli"
-search = "etf_assistant.search:search_cli"
-eval-retrieval = "etf_assistant.eval_retrieval:main"
-ask = "etf_assistant.agent:ask_cli"
-chat = "etf_assistant.agent:chat_cli"
-eval-e2e = "etf_assistant.eval_e2e:main"
+# `uv run <name>` calls these functions
+# data setup
+build-catalog = "etf_assistant.corpus.catalog:main"
+ingest = "etf_assistant.pipeline:ingest_cli"
+index = "etf_assistant.pipeline:index_cli"
+search = "etf_assistant.retrieval.store:search_cli"
+# the assistant
+ask = "etf_assistant.agent.cli:ask_cli"
+chat = "etf_assistant.agent.cli:chat_cli"
+# evaluation
+check-facts = "etf_assistant.evals.check_facts:cli"
+check-golden = "etf_assistant.evals.check_golden:main"
+check-chunks = "etf_assistant.evals.check_chunks:main"
+eval-retrieval = "etf_assistant.evals.eval_retrieval:main"
+eval-e2e = "etf_assistant.evals.eval_e2e:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]

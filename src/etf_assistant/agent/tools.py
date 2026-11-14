@@ -14,11 +14,11 @@ for the model to read, and the tags carry what it needs to cite (ISIN, doc, page
 import re
 from functools import cache
 
-from etf_assistant.catalog import Fund, load_catalog
-from etf_assistant.manifest import load_manifest
-from etf_assistant.parse import load_pages
+from etf_assistant.corpus.catalog import Fund, load_catalog
+from etf_assistant.corpus.manifest import load_manifest
+from etf_assistant.corpus.parse import load_pages
 from etf_assistant.paths import DATA
-from etf_assistant.search import search
+from etf_assistant.retrieval.store import search
 
 TOOLS = [
     {

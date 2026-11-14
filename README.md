@@ -4,6 +4,23 @@ A chatbot that answers questions about ETFs from their official documents
 (KIDs and factsheets) using retrieval-augmented generation (RAG), plus an
 evaluation pipeline that scores its answers against a hand-verified answer key.
 
+## Project layout
+
+```
+src/etf_assistant/
+  paths.py, llm.py   shared: file locations; Claude client, cost accounting, budget cap
+  corpus/            the documents: manifest, PDF -> Markdown, chunking, fund catalog
+  retrieval/         embeddings and the OpenSearch index (BM25, vector, hybrid)
+  pipeline.py        data setup: ingest (PDFs -> chunks) and index (chunks -> OpenSearch)
+  agent/             the assistant: system prompt, tools, agentic loop, CLI
+  evals/             answer key schema and checks, golden set, retrieval and end-to-end evals
+tests/               offline tests, including the layering rule below
+```
+
+Each layer imports only from the ones above it in this list, and nothing outside
+`evals/` imports `evals/`: the assistant can never read the answer key it is
+graded against. `tests/test_layers.py` enforces this.
+
 ## Setup
 
 ```bash
@@ -31,6 +48,7 @@ uv run check-golden              # resolve expected answers -> evals/golden_v1.r
 
 ```bash
 uv run ingest                   # PDFs -> Markdown (cached in data/parsed/) -> data/chunks.jsonl
+uv run check-chunks             # are the verified facts intact inside one chunk? (upper bound for retrieval)
 docker compose up -d            # start OpenSearch on localhost:9200
 uv run index                    # embed chunks (BAAI/bge-small-en-v1.5) and index them
 uv run search "What's the risk score of EIMI?"                      # hybrid (BM25 + vector)

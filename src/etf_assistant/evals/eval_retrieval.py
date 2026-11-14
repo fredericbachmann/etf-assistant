@@ -35,18 +35,17 @@ Usage:
 
 import argparse
 import json
-import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 
 import yaml
 
-from etf_assistant.embeddings import MODEL_NAME
-from etf_assistant.fund_facts import FundFacts, Sourced
-from etf_assistant.ingest import plain
+from etf_assistant.evals.fund_facts import FundFacts, Sourced
+from etf_assistant.evals.textmatch import squash
 from etf_assistant.paths import EVALS, FACTS
-from etf_assistant.search import Hit, search
+from etf_assistant.retrieval.embeddings import MODEL_NAME
+from etf_assistant.retrieval.store import Hit, search
 
 K_VALUES = (1, 3, 5, 10)
 K_MAX = max(K_VALUES)
@@ -89,10 +88,6 @@ class Result:
     top_ids: list[str] = field(default_factory=list)
 
 
-def _squash(s: str) -> str:
-    return re.sub(r"\s", "", plain(s)).lower()
-
-
 def load_facts() -> dict[str, FundFacts]:
     return {f.stem: FundFacts.model_validate_json(f.read_text()) for f in sorted(FACTS.glob("*.json"))}
 
@@ -129,8 +124,8 @@ def build_queries(facts: dict[str, FundFacts]) -> list[Query]:
 def rank_of(query: Query, hits: list[Hit]) -> int | None:
     ranks = []
     for quote in query.quotes.values():
-        q = _squash(quote)
-        r = next((i for i, h in enumerate(hits, 1) if h.isin == query.isin and q in _squash(h.text)), None)
+        q = squash(quote)
+        r = next((i for i, h in enumerate(hits, 1) if h.isin == query.isin and q in squash(h.text)), None)
         if r is None:
             return None
         ranks.append(r)

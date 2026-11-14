@@ -28,12 +28,12 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from etf_assistant.agent import Agent
-from etf_assistant.catalog import load_catalog
-from etf_assistant.judge import judge
+from etf_assistant.agent.loop import Agent
+from etf_assistant.corpus.catalog import load_catalog
+from etf_assistant.evals.judge import judge
 from etf_assistant.llm import Budget, BudgetExceeded, warm_up
 from etf_assistant.paths import EVALS, FACTS
-from etf_assistant.search import check_ready
+from etf_assistant.retrieval.store import check_ready
 
 RESOLVED = EVALS / "golden_v1.resolved.json"
 WORKERS = 4  # questions in flight at once

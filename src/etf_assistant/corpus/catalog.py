@@ -22,9 +22,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from etf_assistant.corpus.manifest import load_manifest
+from etf_assistant.corpus.parse import load_pages
 from etf_assistant.llm import MODEL, client
-from etf_assistant.manifest import load_manifest
-from etf_assistant.parse import load_pages
 from etf_assistant.paths import CATALOG, DATA
 
 

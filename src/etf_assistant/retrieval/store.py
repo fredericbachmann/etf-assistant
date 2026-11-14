@@ -30,9 +30,8 @@ from typing import Literal
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
-from etf_assistant.chunking import Chunk
-from etf_assistant.embeddings import DIM, MODEL_NAME, embed_passages, embed_query
-from etf_assistant.paths import CHUNKS
+from etf_assistant.corpus.chunking import Chunk
+from etf_assistant.retrieval.embeddings import DIM, MODEL_NAME, embed_passages, embed_query
 
 INDEX = "etf-chunks"
 HYBRID_PIPELINE = "etf-hybrid"
@@ -248,11 +247,6 @@ def search(query: str, k: int = 5, mode: Mode = "hybrid",
 
 
 # --------------------------------------------------------------------------- CLI
-
-def index_cli() -> None:
-    chunks = [Chunk.model_validate_json(line) for line in CHUNKS.read_text(encoding="utf-8").splitlines()]
-    index_chunks(chunks)
-
 
 def search_cli() -> None:
     ap = argparse.ArgumentParser(description="Search the ETF document index")
