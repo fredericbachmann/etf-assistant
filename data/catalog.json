@@ -1,0 +1,173 @@
+[
+  {
+    "name": "Vanguard FTSE All-World UCITS ETF",
+    "share_class": "(USD) Distributing",
+    "distribution": "distributing",
+    "brand": "Vanguard",
+    "tickers": [
+      "VWRL",
+      "VWRD",
+      "VGWL"
+    ],
+    "isin": "IE00B3RBWM25",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "Invesco S&P 500 UCITS ETF",
+    "share_class": "Acc",
+    "distribution": "accumulating",
+    "brand": "Invesco",
+    "tickers": [
+      "SPXS"
+    ],
+    "isin": "IE00B3YCGJ38",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares MSCI World EUR Hedged UCITS ETF",
+    "share_class": "Acc",
+    "distribution": "accumulating",
+    "brand": "iShares",
+    "tickers": [
+      "IWDE",
+      "IBCH"
+    ],
+    "isin": "IE00B441G979",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares Core MSCI World UCITS ETF",
+    "share_class": "U.S. Dollar (Accumulating)",
+    "distribution": "accumulating",
+    "brand": "iShares",
+    "tickers": [
+      "SWDA",
+      "IWDA",
+      "EUNL"
+    ],
+    "isin": "IE00B4L5Y983",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares Core € Govt Bond UCITS ETF",
+    "share_class": "Euro (Distributing)",
+    "distribution": "distributing",
+    "brand": "iShares",
+    "tickers": [
+      "IEGA",
+      "EUNH",
+      "SEGA"
+    ],
+    "isin": "IE00B4WXJJ64",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares Core S&P 500 UCITS ETF",
+    "share_class": "U.S. Dollar (Accumulating)",
+    "distribution": "accumulating",
+    "brand": "iShares",
+    "tickers": [
+      "CSPX",
+      "CSP1",
+      "CSPXCO"
+    ],
+    "isin": "IE00B5BMR087",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "Vanguard FTSE All-World High Dividend Yield UCITS ETF",
+    "share_class": "(USD) Distributing",
+    "distribution": "distributing",
+    "brand": "Vanguard",
+    "tickers": [
+      "VHYL",
+      "VHYD",
+      "VGWD"
+    ],
+    "isin": "IE00B8GKDB10",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares MSCI World Small Cap UCITS ETF",
+    "share_class": "U.S. Dollar (Accumulating)",
+    "distribution": "accumulating",
+    "brand": "iShares",
+    "tickers": [
+      "WSML",
+      "IUSN"
+    ],
+    "isin": "IE00BF4RFH31",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "Xtrackers MSCI World UCITS ETF",
+    "share_class": "1C",
+    "distribution": "accumulating",
+    "brand": "Xtrackers",
+    "tickers": [
+      "XDWD",
+      "XWLD"
+    ],
+    "isin": "IE00BJ0KDQ92",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "Vanguard FTSE All-World UCITS ETF",
+    "share_class": "(USD) Accumulating",
+    "distribution": "accumulating",
+    "brand": "Vanguard",
+    "tickers": [
+      "VWRP",
+      "VWRA",
+      "VWCE"
+    ],
+    "isin": "IE00BK5BQT80",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  },
+  {
+    "name": "iShares Core MSCI EM IMI UCITS ETF",
+    "share_class": "U.S. Dollar (Accumulating)",
+    "distribution": "accumulating",
+    "brand": "iShares",
+    "tickers": [
+      "EIMI",
+      "EMIM",
+      "EIMICO"
+    ],
+    "isin": "IE00BKM4GZ66",
+    "documents": [
+      "factsheet",
+      "kid"
+    ]
+  }
+]

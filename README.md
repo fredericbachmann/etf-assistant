@@ -37,11 +37,25 @@ uv run search "What's the risk score of EIMI?"                      # hybrid (BM
 uv run search "swap fee" --mode bm25 --isin IE00B3YCGJ38 -k 3      # keyword only, one fund
 ```
 
+## Assistant
+
+Uses Claude Haiku via the Anthropic SDK. Locally, log in once with the `ant` CLI
+(`brew install anthropics/tap/ant && ant auth login`); no API key in the project.
+
+```bash
+uv run build-catalog                                   # fund names + tickers, extracted from the documents by Haiku
+uv run ask "What's the ongoing charge of VWCE?"        # one question, shows the tool calls
+uv run chat                                            # conversation with follow-up questions
+```
+
 ## Evaluation
 
 ```bash
 uv run eval-retrieval                 # Recall@k / MRR for BM25, vector, hybrid (with and without ISIN filter)
 uv run eval-retrieval --show-misses   # plus the golden questions whose evidence isn't in the top 5
+uv run eval-e2e                       # all golden questions through the agent, graded by an LLM judge (cap $0.50)
+uv run eval-e2e --only f01,c03 --max-cost 0.05
+uv run eval-e2e --rejudge evals/results/e2e_<time>.json   # grade saved answers again after changing the judge
 ```
 
 Results are written to `evals/results/` so runs can be compared over time.

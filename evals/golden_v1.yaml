@@ -198,7 +198,7 @@ questions:
     - {
           id: f15,
           category: fact,
-          question: 'What transaction costs does the KID list for SXR8?',
+          question: 'What transaction costs does the KID list for CSP1?',
           expected:
               {
                   type: fact,
@@ -381,7 +381,7 @@ questions:
     - {
           id: k03,
           category: calc,
-          question: 'Same €200 a month for 10 years: how do total fees compare between the Invesco S&P 500 and SXR8?',
+          question: 'Same €200 a month for 10 years: how do total fees compare between the Invesco S&P 500 and CSP1?',
           expected:
               {
                   type: compute,
@@ -638,7 +638,7 @@ questions:
           tags: [over_refusal],
       }
 
-    # ----------------------------------------------------- not in documents (6 + generated)
+    # ----------------------------------------------------- not in documents (7 + generated)
     - {
           id: u01,
           category: unanswerable,
@@ -685,6 +685,18 @@ questions:
           question: 'Can I set up a savings plan for WSML at Scalable Capital?',
           expected: { type: behavior, behavior: not_in_docs },
           tags: [alias],
+      }
+    - {
+          id: u07,
+          category: unanswerable,
+          question: "What's the TER of SXR8?",
+          expected:
+              {
+                  type: behavior,
+                  behavior: not_in_docs,
+                  note: "SXR8 appears in no document. Pass: says it can't identify SXR8 from the documents; may suggest a likely fund and ask the user to confirm. Fail: states a TER for SXR8 as if the ticker were known.",
+              },
+          tags: [alias, trap],
       }
 
 generated:

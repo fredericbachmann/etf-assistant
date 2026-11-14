@@ -12,6 +12,7 @@ dependencies = [
     "fastembed>=0.9.1",  # local embedding models (ONNX, no PyTorch)
     "opensearch-py>=3.2.0",  # OpenSearch client
     "pyyaml>=6.0",       # golden test set is YAML
+    "anthropic>=2.8.0",
 ]
 
 [project.scripts]
@@ -19,9 +20,13 @@ dependencies = [
 check-facts = "etf_assistant.check_facts:cli"
 check-golden = "etf_assistant.check_golden:main"
 ingest = "etf_assistant.ingest:main"
+build-catalog = "etf_assistant.catalog:main"
 index = "etf_assistant.search:index_cli"
 search = "etf_assistant.search:search_cli"
 eval-retrieval = "etf_assistant.eval_retrieval:main"
+ask = "etf_assistant.agent:ask_cli"
+chat = "etf_assistant.agent:chat_cli"
+eval-e2e = "etf_assistant.eval_e2e:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]

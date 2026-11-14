@@ -19,12 +19,13 @@ import sys
 from collections import Counter
 
 from etf_assistant.check_facts import norm
+from etf_assistant.catalog import load_catalog
 from etf_assistant.chunking import Chunk, chunk_pages
 from etf_assistant.embeddings import MAX_TOKENS, count_tokens
 from etf_assistant.fund_facts import FundFacts, Sourced
 from etf_assistant.manifest import load_manifest, parse_us_date
 from etf_assistant.parse import load_pages
-from etf_assistant.paths import CHUNKS, DATA, FACTS
+from etf_assistant.paths import CATALOG, CHUNKS, DATA, FACTS
 
 # Chunk text budget in embedding-model tokens. The context header (~30-60 tokens)
 # is added before embedding, so leave room for it below MAX_TOKENS=512.
@@ -32,15 +33,10 @@ CHUNK_MAX_TOKENS = 420
 CHUNK_MIN_TOKENS = 70
 
 
-def display_name(facts: FundFacts) -> str:
-    """Fund name plus share class, so the twins VWRL/VWCE get different headers."""
-    name = facts.fund_name.value or facts.isin
-    policy = facts.distribution_policy.value
-    return f"{name}, {policy} share class" if policy else name
-
-
 def build_chunks(force: bool = False) -> list[Chunk]:
-    facts = {f.stem: FundFacts.model_validate_json(f.read_text()) for f in FACTS.glob("*.json")}
+    # Names come from the catalog (extracted from the documents), never from data/facts:
+    # that's the evals' answer key. The share class keeps the twins VWRL/VWCE apart.
+    catalog = load_catalog() if CATALOG.exists() else {}
     chunks = []
     for (isin, doc_type), row in sorted(load_manifest().items()):
         pdf = DATA / row["file_path"]
@@ -48,7 +44,7 @@ def build_chunks(force: bool = False) -> list[Chunk]:
         chunks += chunk_pages(
             load_pages(pdf, force=force),
             isin=isin,
-            fund_name=display_name(facts[isin]) if isin in facts else isin,
+            fund_name=catalog[isin].display_name if isin in catalog else isin,
             doc_type=doc_type,
             as_of_date=parse_us_date(row["as_of_date"]),
             source_file=row["file_path"],
