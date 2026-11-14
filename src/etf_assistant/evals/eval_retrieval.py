@@ -10,6 +10,11 @@ Query sets
   templated  one generated question per verified fact ("What is the TER of the
              {fund}?"), ~170 questions. Plain wording, but enough of them to see
              differences between configurations.
+  per_fund   the templated questions without the fund name ("What is the TER of
+             the fund?"), searched within the right fund only. This is what the
+             agent's per-fund search mode sends: one query for all funds, so no
+             fund name in it. (With the filter, a fund name in the query only adds
+             noise: it matches every chunk that repeats the name.)
 
 Relevance
   A retrieved chunk is relevant to a fact if it belongs to the right fund AND
@@ -28,12 +33,13 @@ Configurations
   oracle: we pass the correct fund, as if the agent had already resolved
   "EIMI" -> IE00BKM4GZ66. It shows how much fund identification is worth.
 
-  "hybrid +isin" is also exactly what the agent's per-fund search mode does
-  (search_documents with isins), so its per-field table shows which details
-  that mode finds reliably and which need a fallback to reading documents.
+  "hybrid +isin" on the per_fund set is exactly what the agent's per-fund
+  search mode does (search_documents with isins), so its per-field table shows
+  which details that mode finds reliably and which need a fallback to reading
+  documents.
 
 Usage:
-  uv run eval-retrieval                 # all configurations, both sets, plus the per-field table
+  uv run eval-retrieval                 # all configurations and sets, plus the per-field table
   uv run eval-retrieval --show-misses   # also list golden questions that miss at k=5
 """
 
@@ -122,6 +128,8 @@ def build_queries(facts: dict[str, FundFacts]) -> list[Query]:
             if quote := evidence(facts[isin], name):
                 queries.append(Query(f"t_{isin}_{name}", "templated",
                                      template.format(name=fund["name"]), isin, {name: quote}))
+                queries.append(Query(f"p_{isin}_{name}", "per_fund",
+                                     template.format(name="fund"), isin, {name: quote}))
     return queries
 
 
@@ -177,13 +185,13 @@ def main() -> None:
     args = ap.parse_args()
 
     queries = build_queries(load_facts())
-    sets = {s: [q for q in queries if q.set == s] for s in ("golden", "templated")}
+    sets = {s: [q for q in queries if q.set == s] for s in ("golden", "templated", "per_fund")}
     print(f"embedding model: {MODEL_NAME}")
-    print(f"queries: golden {len(sets['golden'])}, templated {len(sets['templated'])}\n")
+    print("queries: " + ", ".join(f"{s} {len(qs)}" for s, qs in sets.items()) + "\n")
 
     cols = [f"R@{k}" for k in K_VALUES] + ["MRR"]
     print(f"{'config':14}" + "".join(f"| {s} ({len(qs)})".ljust(36) for s, qs in sets.items()))
-    print(f"{'':14}" + ("| " + " ".join(f"{c:>6}" for c in cols) + "  ") * 2)
+    print(f"{'':14}" + ("| " + " ".join(f"{c:>6}" for c in cols) + "  ") * len(sets))
 
     report = {"run_at": datetime.now().isoformat(timespec="seconds"), "embedding_model": MODEL_NAME, "configs": {}}
     misses = {}
@@ -193,6 +201,9 @@ def main() -> None:
             name = mode + (" +isin" if isin_filter else "")
             row, report["configs"][name] = f"{name:14}", {}
             for set_name, qs in sets.items():
+                if set_name == "per_fund" and not isin_filter:
+                    row += "| " + " ".join(f"{'-':>6}" for _ in cols) + "  "  # no fund named, no filter: meaningless
+                    continue
                 results = run(qs, mode, isin_filter)
                 m = metrics(results)
                 report["configs"][name][set_name] = {
@@ -206,8 +217,8 @@ def main() -> None:
             print(row)
     print(f"\n({time.time() - t:.0f}s)")
     # The configuration behind search_documents(isins=...): one filtered search per fund.
-    print_by_field(report["configs"]["hybrid +isin"]["templated"]["by_field"],
-                   "per field, hybrid +isin, templated (what the per-fund search mode of the agent sees):")
+    print_by_field(report["configs"]["hybrid +isin"]["per_fund"]["by_field"],
+                   "per field, hybrid +isin, per_fund (what the agent's per-fund search mode sees):")
 
     out = EVALS / "results" / f"retrieval_{report['run_at'].replace(':', '-')}.json"
     out.parent.mkdir(exist_ok=True)
