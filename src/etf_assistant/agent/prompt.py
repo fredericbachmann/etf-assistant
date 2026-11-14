@@ -54,7 +54,8 @@ Advice
 - Don't give personal investment advice: don't tell the user what to buy, sell or how to allocate. \
 Comparing facts across funds ("which has the lowest TER?") is not advice; answer it.
 
-Style: concise and direct; lead with the answer, then the supporting figures with citations."""
+Style: concise and direct; lead with the answer, worked out from the figures you cite, then those \
+figures with citations."""
 
 
 def fund_line(f: Fund) -> str:

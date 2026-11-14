@@ -1,0 +1,45 @@
+{
+  "run_at": "2026-11-14T16:31:45",
+  "rejudged_from": null,
+  "max_cost": 0.03,
+  "spent": 0.0036743950000000004,
+  "results": [
+    {
+      "id": "c08",
+      "category": "compare",
+      "tags": [],
+      "question": "Rank all the funds you cover by TER, cheapest first.",
+      "answer": "**Ranking by TER (cheapest first):**\n\n1. **Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38): 0.05%** [IE00B3YCGJ38 factsheet p.1]. This is a synthetic fund with a separate 0.07% swap fee [IE00B3YCGJ38 factsheet p.1], so its cost including the swap fee is 0.12%.\n2. **iShares Core € Govt Bond UCITS ETF Euro (Distributing) (IE00B4WXJJ64): 0.07%** [IE00B4WXJJ64 factsheet p.1]\n3. **iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087): 0.07%** [IE00B5BMR087 factsheet p.1]\n4. **Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92): 0.12%** — the factsheet gives an \"all-in fee\" of 0.12% p.a., not a TER label [IE00BJ0KDQ92 factsheet p.1]. I've included it on that basis.\n5. **Vanguard FTSE All-World UCITS ETF (USD) Distributing (IE00B3RBWM25): 0.14%** [IE00B3RBWM25 factsheet p.1]\n6. **Vanguard FTSE All-World UCITS ETF (USD) Accumulating (IE00BK5BQT80): 0.14%** [IE00BK5BQT80 factsheet p.1]\n7. **iShares Core MSCI EM IMI UCITS ETF USD (Acc) (IE00BKM4GZ66): 0.18%** [IE00BKM4GZ66 factsheet p.1]\n8. **iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983): 0.20%** [IE00B4L5Y983 factsheet p.1]\n9. **Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing (IE00B8GKDB10): 0.29%** [IE00B8GKDB10 factsheet p.1]\n10. **iShares MSCI World Small Cap UCITS ETF USD (Acc) (IE00BF4RFH31): 0.35%** [IE00BF4RFH31 factsheet p.1]\n11. **iShares MSCI World EUR Hedged UCITS ETF Acc (IE00B441G979): 0.55%** [IE00B441G979 factsheet p.1]\n\nTies are listed in the order the documents were retrieved. The two Vanguard FTSE All-World funds (distributing and accumulating) are share classes of one fund with the same charge; they differ in distribution treatment.",
+      "stop_reason": "end_turn",
+      "seconds": 10.8,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio (TER) ongoing charges",
+            "isins": [
+              "all"
+            ],
+            "doc_type": "factsheet",
+            "k": 2
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0031113950000000003,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Required: the answer gives all 11 funds ordered lowest to highest TER, ties in any order, and a substantive answer. The answer lists all 11 funds with values matching the key: Invesco 0.05, iShares Core S&P 500 0.07, iShares Govt Bond 0.07 (tie), Xtrackers 0.12, Vanguard Distributing 0.14, Vanguard Accumulating 0.14 (tie), EM IMI 0.18, iShares Core MSCI World 0.20, HDY 0.29, Small Cap 0.35, EUR Hedged 0.55. The order matches the expected order apart from permitted ties. The Invesco swap-fee note is a document-attributed caveat, and the Xtrackers 'all-in fee' label is a labelled equivalent of the 0.12 value, so neither is a contradiction. The answer commits to a ranking and does not decline or deflect.",
+      "judge_cost": 0.000563,
+      "status": "done"
+    }
+  ]
+}

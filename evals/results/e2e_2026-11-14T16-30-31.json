@@ -1,0 +1,257 @@
+{
+  "run_at": "2026-11-14T16:30:31",
+  "rejudged_from": null,
+  "max_cost": 0.05,
+  "spent": 0.015771170000000004,
+  "results": [
+    {
+      "id": "c01",
+      "category": "compare",
+      "tags": [
+        "consistency"
+      ],
+      "question": "Which is cheaper by TER: the iShares Core MSCI World or the Xtrackers MSCI World 1C?",
+      "answer": "The **Xtrackers MSCI World UCITS ETF 1C** has the lower TER: 0.12% p.a., against 0.20% for the **iShares Core MSCI World UCITS ETF (USD) Accumulating**. The gap is 0.08 percentage points a year.\n\n- **iShares Core MSCI World (IE00B4L5Y983):** Total Expense Ratio 0.20% [IE00B4L5Y983 factsheet p.1, as of 31 Oct 2026].\n- **Xtrackers MSCI World 1C (IE00BJ0KDQ92):** The factsheet gives an \"All-in fee\" of 0.12% p.a. [IE00BJ0KDQ92 factsheet p.1, as of 30 Sep 2026]. I'm treating this as its TER, since the document doesn't use the term. Its portfolio is directly replicated (physically), so there is no separate swap fee to add.",
+      "stop_reason": "end_turn",
+      "seconds": 3.8,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BJ0KDQ92",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0016577150000000001,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: lowest ter_pct is IE00BJ0KDQ92 (Xtrackers MSCI World 1C) at 0.12. The answer names Xtrackers MSCI World UCITS ETF 1C as lower TER at 0.12% and gives iShares at 0.20%, matching the expected values. It states a clear, substantive answer, not a refusal. The answer notes it treats the 'All-in fee' as TER, which is an attributed caveat about the document's labeling, not a contradiction. The swap fee note is consistent with the sum convention (no swap fee for physical replication). The answer commits to the correct result.",
+      "judge_cost": 0.0002479,
+      "status": "done"
+    },
+    {
+      "id": "c02",
+      "category": "compare",
+      "tags": [],
+      "question": "How much more per year does the EUR-hedged iShares MSCI World cost than the unhedged Core version?",
+      "answer": "The EUR-hedged version costs **0.35 percentage points more per year**: a TER of 0.55% against 0.20% for the unhedged Core fund. On a EUR 10,000 holding, that is about EUR 35 a year.\n\n- **EUR-hedged (IE00B441G979, iShares MSCI World EUR Hedged UCITS ETF Acc):** TER 0.55% [IE00B441G979 factsheet p.1]. The KID shows the same 0.55% management and operating cost [IE00B441G979 KID p.3].\n- **Unhedged (IE00B4L5Y983, iShares Core MSCI World UCITS ETF USD Acc):** TER 0.20% [IE00B4L5Y983 factsheet p.1]. The KID shows the same 0.20% [IE00B4L5Y983 KID p.3].\n\nNeither factsheet mentions a separate swap fee, so no adjustment is needed. The figures are factsheet data as of 31 Oct 2026. The TER gap is the only fee difference the documents quantify; they don't separately price the currency hedging.",
+      "stop_reason": "end_turn",
+      "seconds": 5.8,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B441G979",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0029767400000000003,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expected difference first minus second: 0.55 - 0.20 = 0.35 percentage points. The answer gives 0.35 percentage points more, with first fund (EUR-hedged) TER 0.55% and second (Core) 0.20%, matching the expectation's ordering and value. The answer is a substantive factual answer, not a refusal or advice deflection. Extra details (EUR 35 on EUR 10,000, KID figures, swap fee note) are consistent with the expectation and not contradictory. Passes.",
+      "judge_cost": 0.0002289,
+      "status": "done"
+    },
+    {
+      "id": "c03",
+      "category": "compare",
+      "tags": [
+        "trap"
+      ],
+      "question": "Which S&P 500 fund you cover has the lowest annual cost once you include any swap fee?",
+      "answer": "**The iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) has the lower annual cost.** Its total expense ratio is 0.07% with no swap fee. The Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) costs 0.12% once its swap fee is included.\n\n- **Invesco (IE00B3YCGJ38):** Ongoing charge 0.05% p.a. plus swap fee 0.07% p.a., so 0.05% + 0.07% = 0.12% [IE00B3YCGJ38 factsheet p.1]. The fund is synthetic, and the factsheet says the swap fee is \"not charged separately\" but is deducted inside the swap arrangement [IE00B3YCGJ38 factsheet p.1]. It is still a real cost.\n- **iShares (IE00B5BMR087):** Total expense ratio 0.07% [IE00B5BMR087 factsheet p.1]. The KID describes physical replication, and I found no swap fee in its documents [IE00B5BMR087 KID p.3].\n\nThese are the two S&P 500 funds in the library. Both are accumulating funds in USD. The factsheet figures are as of the factsheet dates, which the search results did not show.",
+      "stop_reason": "end_turn",
+      "seconds": 5.0,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "total expense ratio swap fee synthetic replication",
+            "isins": [
+              "IE00B3YCGJ38",
+              "IE00B5BMR087"
+            ],
+            "k": 4
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0008655550000000001,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expected correct result: IE00B5BMR087 (iShares) with value 0.07, since Invesco totals 0.12 (0.05 + 0.07). The answer names iShares as lowest at 0.07% with no swap fee, and explicitly names Invesco's swap fee of 0.07% giving 0.12% total. This matches the expected result and names the swap fee explicitly. The answer is a substantive answer, not a refusal. The caveat about factsheet dates is harmless. The claim about 'no swap fee' for iShares is consistent with the expectation's implied fee sum of 0.07 for iShares (TER only). Passes.",
+      "judge_cost": 0.000266,
+      "status": "done"
+    },
+    {
+      "id": "c04",
+      "category": "compare",
+      "tags": [
+        "alias"
+      ],
+      "question": "Do VWRL and VWCE have the same TER?",
+      "answer": "Yes. Both have an Ongoing Charges Figure (the TER-equivalent on the factsheet) of 0.14%.\n\n- **VWRL** (IE00B3RBWM25, Vanguard FTSE All-World UCITS ETF (USD) Distributing): OCF 0.14% [IE00B3RBWM25 factsheet p.1]\n- **VWCE** (IE00BK5BQT80, Vanguard FTSE All-World UCITS ETF (USD) Accumulating): OCF 0.14% [IE00BK5BQT80 factsheet p.1]\n\nThese are two share classes of the same fund, tracking the same index. They differ in distribution policy: VWRL distributes dividends quarterly, while VWCE accumulates them. Both factsheets are as of 30 September 2026. Neither fund has a swap fee to add, since both are physically replicated.",
+      "stop_reason": "end_turn",
+      "seconds": 3.0,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3RBWM25",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BK5BQT80",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.001944275,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: correct result True (equal TER), substantive answer required. Answer says Yes, both OCF/TER 0.14%, with ISIN and names for both funds. Matches the expected True and gives a substantive factual answer. Extra details (distribution policy, dates, physical replication) are extra correct detail or unverifiable caveats not contradicting the expectation. Passes.",
+      "judge_cost": 0.0001955,
+      "status": "done"
+    },
+    {
+      "id": "c05",
+      "category": "compare",
+      "tags": [
+        "trap"
+      ],
+      "question": "Which equity fund in your set has the highest risk indicator?",
+      "answer": "**Nine of the ten equity funds share the highest summary risk indicator, 4 out of 7 (medium risk). No single equity fund ranks higher.** The tenth, Vanguard FTSE All-World High Dividend Yield (IE00B8GKDB10), is lower at 3 out of 7. The iShares Core € Govt Bond fund (IE00B4WXJJ64) is also 3 out of 7, but it is a bond fund, so I excluded it.\n\nFunds at 4 out of 7 (KID risk indicator, 5-year holding period):\n- Vanguard FTSE All-World UCITS ETF (USD) Distributing, IE00B3RBWM25 [KID p.1]\n- Invesco S&P 500 UCITS ETF Acc, IE00B3YCGJ38 [KID p.1]\n- iShares MSCI World EUR Hedged UCITS ETF Acc, IE00B441G979 [KID p.2]\n- iShares Core MSCI World UCITS ETF USD (Acc), IE00B4L5Y983 [KID p.2]\n- iShares Core S&P 500 UCITS ETF USD (Acc), IE00B5BMR087 [KID p.2]\n- iShares MSCI World Small Cap UCITS ETF USD (Acc), IE00BF4RFH31 [KID p.2]\n- Xtrackers MSCI World UCITS ETF 1C, IE00BJ0KDQ92 [KID p.1]\n- Vanguard FTSE All-World UCITS ETF (USD) Accumulating, IE00BK5BQT80 [KID p.1]\n- iShares Core MSCI EM IMI UCITS ETF USD (Acc), IE00BKM4GZ66 [KID p.2]\n\nFund at 3 out of 7:\n- Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing, IE00B8GKDB10 [KID p.1]\n\nEvery KID notes that the indicator does not cover currency risk. The indicator is a relative guide and does not capture every risk, so it does not rank these funds' actual returns.",
+      "stop_reason": "end_turn",
+      "seconds": 7.2,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Summary risk indicator risk class 1 to 7",
+            "isins": [
+              "IE00B3RBWM25",
+              "IE00B3YCGJ38",
+              "IE00B441G979",
+              "IE00B4L5Y983",
+              "IE00B4WXJJ64",
+              "IE00B5BMR087",
+              "IE00B8GKDB10",
+              "IE00BF4RFH31",
+              "IE00BJ0KDQ92",
+              "IE00BK5BQT80",
+              "IE00BKM4GZ66"
+            ],
+            "k": 2
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0020241900000000004,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: highest SRI value is 4, tied across nine funds; all nine must be named. The answer names all nine funds at 4 out of 7 (IE00B3RBWM25, IE00B3YCGJ38, IE00B441G979, IE00B4L5Y983, IE00B5BMR087, IE00BF4RFH31, IE00BJ0KDQ92, IE00BK5BQT80, IE00BKM4GZ66), and correctly states IE00B8GKDB10 is 3. It also answers substantively rather than refusing. The extra note about the iShares bond fund being excluded is a labelled exclusion, not a contradiction, and the caveats are fine. The answer does not explicitly say the nine are tied as the maximum for the equity set, but it states 'Nine of the ten equity funds share the highest summary risk indicator, 4 out of 7' and 'No single equity fund ranks higher', which commits to the expected result.",
+      "judge_cost": 0.0004094,
+      "status": "done"
+    },
+    {
+      "id": "c06",
+      "category": "compare",
+      "tags": [],
+      "question": "Which of your funds has the lowest risk indicator?",
+      "answer": "Two funds share the lowest summary risk indicator, both at 3 out of 7 (medium-low):\n\n- **iShares Core € Govt Bond UCITS ETF Euro (Distributing), IE00B4WXJJ64**: 3 of 7. The KID uses a 3-year holding period, unlike the 5 years used for the others. [IE00B4WXJJ64 KID p.2]\n- **Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing, IE00B8GKDB10**: 3 of 7, based on a 5-year holding period. [IE00B8GKDB10 KID p.1]\n\nThe other nine funds are all at 4 of 7 (medium), including the Vanguard FTSE All-World and iShares Core MSCI World. [e.g. IE00B3RBWM25 KID p.1; IE00B4L5Y983 KID p.2]\n\nThe indicator does not cover currency risk, which the KIDs flag separately.",
+      "stop_reason": "end_turn",
+      "seconds": 4.8,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Summary risk indicator risk class 1 to 7",
+            "isins": [
+              "all"
+            ],
+            "k": 2
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.00063288,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: lowest SRI value is 3, shared by IE00B8GKDB10 and IE00B4WXJJ64, both must be named. The answer names both funds with SRI 3 of 7, and states the other nine are at 4 of 7, which is consistent with the expectation that 3 is the lowest. It gives a substantive answer, not a refusal. The extra remarks about holding period and currency risk are attributed to documents and do not contradict the required result. The answer commits to the expected result.",
+      "judge_cost": 0.0002673,
+      "status": "done"
+    },
+    {
+      "id": "c07",
+      "category": "compare",
+      "tags": [
+        "snapshot"
+      ],
+      "question": "Which world equity ETF you cover holds the most stocks?",
+      "answer": "**Vanguard FTSE All-World UCITS ETF** holds the most stocks among the world equity funds in the library: **3,821 stocks** as of 30 September 2026 [IE00B3RBWM25 factsheet p.3]. The accumulating share class (IE00BK5BQT80) reports the same figure [IE00BK5BQT80 factsheet p.3]. The two are share classes of one fund, differing in distribution (distributing vs. accumulating).\n\nFor comparison, the next-largest holdings counts are:\n- iShares MSCI World Small Cap UCITS ETF (Acc), IE00BF4RFH31: 3,576 holdings [IE00BF4RFH31 factsheet p.1]. The snippet doesn't give an as-of date.\n- Vanguard FTSE All-World High Dividend Yield (Dist), IE00B8GKDB10: 2,440 stocks, as of 30 September 2026 [IE00B8GKDB10 factsheet p.3].\n- iShares Core MSCI World (Acc), IE00B4L5Y983: 1,250 holdings [IE00B4L5Y983 factsheet p.1], and iShares MSCI World EUR Hedged (Acc), IE00B441G979: 1,248 [IE00B441G979 factsheet p.1].\n\nThe Xtrackers MSCI World UCITS ETF (IE00BJ0KDQ92) factsheet doesn't give a fund holdings count. It shows only the index's 1,283 constituents [IE00BJ0KDQ92 factsheet p.1], so it can't be ranked on the same basis.",
+      "stop_reason": "end_turn",
+      "seconds": 7.0,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Number of holdings",
+            "isins": [
+              "all"
+            ],
+            "k": 2,
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BJ0KDQ92",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.002494405,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: highest holdings_count among the five considered funds is 3821, tied between IE00B3RBWM25 (Distributing) and IE00BK5BQT80 (Accumulating); both must be named. The answer names Vanguard FTSE All-World UCITS ETF with 3,821, cites IE00B3RBWM25 and IE00BK5BQT80 both at 3,821, so both tied funds are named with the correct value. The answer also mentions other funds (IE00BF4RFH31, IE00B8GKDB10) outside the considered set; this is extra detail and does not contradict the expectation, since the question asks about world equity ETFs covered and the expectation limits to the considered funds. The answer gives a substantive answer, not a refusal. The Xtrackers fund is noted as lacking a holdings count, which is consistent with not ranking it higher. Required behavior is met.",
+      "judge_cost": 0.00032720000000000004,
+      "status": "done"
+    },
+    {
+      "id": "c08",
+      "category": "compare",
+      "tags": [],
+      "question": "Rank all the funds you cover by TER, cheapest first.",
+      "status": "not_run",
+      "error": "next call could cost up to $0.0105; spent $0.0112 + in flight $0.0296 would exceed the $0.050 cap"
+    }
+  ]
+}

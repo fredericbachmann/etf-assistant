@@ -1,0 +1,45 @@
+{
+  "run_at": "2026-11-14T16:31:13",
+  "rejudged_from": null,
+  "max_cost": 0.03,
+  "spent": 0.00399892,
+  "results": [
+    {
+      "id": "c08",
+      "category": "compare",
+      "tags": [],
+      "question": "Rank all the funds you cover by TER, cheapest first.",
+      "answer": "**Ranking by TER, cheapest first:**\n\n| # | Fund (ISIN) | TER / OCF |\n|---|---|---|\n| 1 | Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) | 0.05% |\n| 2 | iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) | 0.07% |\n| 2 | iShares Core € Govt Bond UCITS ETF (Dist) (IE00B4WXJJ64) | 0.07% |\n| 4 | Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) | 0.12% (all-in fee) |\n| 5 | Vanguard FTSE All-World UCITS ETF (USD) Accumulating (IE00BK5BQT80) | 0.14% |\n| 5 | Vanguard FTSE All-World UCITS ETF (USD) Distributing (IE00B3RBWM25) | 0.14% |\n| 7 | iShares Core MSCI EM IMI UCITS ETF (USD) (Acc) (IE00BKM4GZ66) | 0.18% |\n| 8 | iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983) | 0.20% |\n| 9 | Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing (IE00B8GKDB10) | 0.29% |\n| 10 | iShares MSCI World Small Cap UCITS ETF USD (Acc) (IE00BF4RFH31) | 0.35% |\n| 11 | iShares MSCI World EUR Hedged UCITS ETF (Acc) (IE00B441G979) | 0.55% |\n\n**Sources:**\n- Invesco S&P 500: ongoing charge 0.05% [IE00B3YCGJ38 factsheet p.1, as of 30 Sep 2026]\n- iShares Core S&P 500: 0.07% [IE00B5BMR087 factsheet p.1]\n- iShares Core € Govt Bond: 0.07% [IE00B4WXJJ64 factsheet p.1]\n- Xtrackers MSCI World: all-in fee 0.12% [IE00BJ0KDQ92 factsheet p.1]\n- Vanguard FTSE All-World Acc and Dist: OCF 0.14% each [IE00BK5BQT80 factsheet p.1; IE00B3RBWM25 factsheet p.1]\n- iShares Core MSCI EM IMI: 0.18% [IE00BKM4GZ66 factsheet p.1]\n- iShares Core MSCI World: 0.20% [IE00B4L5Y983 factsheet p.1]\n- Vanguard High Dividend Yield: OCF 0.29% [IE00B8GKDB10 factsheet p.1]\n- iShares MSCI World Small Cap: 0.35% [IE00BF4RFH31 factsheet p.1]\n- iShares MSCI World EUR Hedged: 0.55% [IE00B441G979 factsheet p.1]\n\n**Notes:**\n- Invesco S&P 500 is synthetic and has a separate swap fee of 0.07% p.a. [IE00B3YCGJ38 factsheet p.1]. The factsheet says this is not charged separately but is paid inside the swap. Including it, its total cost is 0.05% + 0.07% = 0.12%, which equals Xtrackers' all-in fee. The ranking above uses the TER figure only, as you asked.\n- The two Vanguard FTSE All-World share classes (Accumulating and Distributing) are the same fund with the same portfolio. They differ in income treatment (accumulating vs. distributing).\n- The two 0.07% funds are different funds, so the tie is coincidental.",
+      "stop_reason": "end_turn",
+      "seconds": 12.0,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio (TER) ongoing charges",
+            "isins": [
+              "all"
+            ],
+            "k": 2,
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0034080200000000003,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "The answer's ordering matches the expected order exactly: Invesco 0.05, iShares Core S&P 500 0.07 and iShares Core Govt Bond 0.07 (tie), Xtrackers 0.12, Vanguard Dist and Acc 0.14 (tie), EM IMI 0.18, MSCI World 0.20, HDY 0.29, Small Cap 0.35, EUR Hedged 0.55. All 11 funds are covered with the expected values. The Xtrackers 0.12% is labelled as an all-in fee, which matches the expected value. The Invesco swap-fee note is a caveat attributed to the factsheet and does not change the TER-based ranking the question asked for. The answer gives a substantive ranking and does not refuse or deflect.",
+      "judge_cost": 0.0005909000000000001,
+      "status": "done"
+    }
+  ]
+}

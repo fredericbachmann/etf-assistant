@@ -104,6 +104,10 @@ Effect of the last two decisions below (full end-to-end run, 64 questions,
 
 The two failures after the change are headline/body contradictions (correct figures,
 wrong one-line summary); both questions passed in a separate run minutes earlier.
+Measured over repeated runs, this happens in about 2 of 40 comparison answers. The style
+rule now asks for a headline "worked out from the figures you cite"; three runs before and
+three after the rewording both passed 24/24, so the effect is too small to measure at this
+sample size, and the rule stays because it costs nothing.
 
 **The fund list lives in the system prompt, not behind a lookup tool.** With
 `find_fund`/`list_funds` tools, 72 of 154 tool calls in a full eval run (47%)

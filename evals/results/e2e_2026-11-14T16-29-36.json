@@ -1,0 +1,47 @@
+{
+  "run_at": "2026-11-14T16:29:36",
+  "rejudged_from": null,
+  "max_cost": 0.03,
+  "spent": 0.0031212500000000003,
+  "results": [
+    {
+      "id": "c07",
+      "category": "compare",
+      "tags": [
+        "snapshot"
+      ],
+      "question": "Which world equity ETF you cover holds the most stocks?",
+      "answer": "**Vanguard FTSE All-World UCITS ETF** holds the most stocks among the world equity funds in the library: **3,821 stocks** as at 30 September 2026 [IE00B3RBWM25 factsheet p.3]. Its accumulating share class, IE00BK5BQT80, reports the same figure [IE00BK5BQT80 factsheet p.3]. The two are share classes of one fund with the same portfolio. They differ in income treatment: distributing (IE00B3RBWM25) versus accumulating (IE00BK5BQT80).\n\nThe next-highest world funds are:\n\n- **iShares MSCI World Small Cap UCITS ETF (Acc), IE00BF4RFH31:** 3,576 holdings [factsheet p.1]. Its figure is a holdings count, not a stock count, and the factsheet doesn't give an as-of date.\n- **Vanguard FTSE All-World High Dividend Yield UCITS ETF (Dist), IE00B8GKDB10:** 2,440 stocks as at 30 September 2026 [factsheet p.3].\n- **iShares Core MSCI World UCITS ETF (Acc), IE00B4L5Y983:** 1,250 holdings [factsheet p.1].\n- **iShares MSCI World EUR Hedged UCITS ETF (Acc), IE00B441G979:** 1,248 holdings [factsheet p.1].\n\nI couldn't get a fund-level count for the **Xtrackers MSCI World UCITS ETF 1C, IE00BJ0KDQ92**. Its factsheet gives only the index constituent count of 1,283 [factsheet p.1], which doesn't confirm what the fund holds.",
+      "stop_reason": "end_turn",
+      "seconds": 7.3,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Number of holdings",
+            "isins": [
+              "all"
+            ],
+            "k": 2,
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BJ0KDQ92",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.00256205,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Field holdings_count: the expectation requires the highest value, 3821, with both tied Vanguard FTSE All-World funds named. The answer names IE00B3RBWM25 (Distributing) and IE00BK5BQT80 (Accumulating) and gives 3,821 for both. It commits to them as the most-held funds, and the other funds it lists have lower counts, so nothing contradicts the expected result. The answer is a substantive factual answer, not a refusal or deflection, which meets the required behavior.",
+      "judge_cost": 0.0005592,
+      "status": "done"
+    }
+  ]
+}
