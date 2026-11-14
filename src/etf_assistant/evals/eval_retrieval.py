@@ -28,8 +28,12 @@ Configurations
   oracle: we pass the correct fund, as if the agent had already resolved
   "EIMI" -> IE00BKM4GZ66. It shows how much fund identification is worth.
 
+  "hybrid +isin" is also exactly what the agent's per-fund search mode does
+  (search_documents with isins), so its per-field table shows which details
+  that mode finds reliably and which need a fallback to reading documents.
+
 Usage:
-  uv run eval-retrieval                 # all configurations, both sets
+  uv run eval-retrieval                 # all configurations, both sets, plus the per-field table
   uv run eval-retrieval --show-misses   # also list golden questions that miss at k=5
 """
 
@@ -147,6 +151,26 @@ def metrics(results: list[Result]) -> dict[str, float]:
     return m
 
 
+def field_of(query: Query) -> str:
+    """Templated queries ask for one field; golden ones may ask for several."""
+    return "+".join(query.quotes)
+
+
+def metrics_by_field(results: list[Result]) -> dict[str, dict[str, float]]:
+    groups: dict[str, list[Result]] = {}
+    for r in results:
+        groups.setdefault(field_of(r.query), []).append(r)
+    return {f: {"n": len(rs), **metrics(rs)} for f, rs in groups.items()}
+
+
+def print_by_field(by_field: dict[str, dict[str, float]], title: str) -> None:
+    """Weakest fields first: where retrieval needs work."""
+    print(f"\n{title}")
+    print(f"  {'field':36} {'n':>3} " + " ".join(f"{f'R@{k}':>6}" for k in K_VALUES))
+    for f, m in sorted(by_field.items(), key=lambda fm: (fm[1]["R@5"], fm[1]["R@10"])):
+        print(f"  {f:36} {m['n']:3.0f} " + " ".join(f"{m[f'R@{k}']:6.2f}" for k in K_VALUES))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--show-misses", action="store_true")
@@ -173,6 +197,7 @@ def main() -> None:
                 m = metrics(results)
                 report["configs"][name][set_name] = {
                     "metrics": m,
+                    "by_field": metrics_by_field(results),
                     "ranks": {r.query.id: r.rank for r in results},
                 }
                 row += "| " + " ".join(f"{m[c]:6.2f}" for c in cols) + "  "
@@ -180,6 +205,9 @@ def main() -> None:
                     misses[name] = [r for r in results if not (r.rank and r.rank <= 5)]
             print(row)
     print(f"\n({time.time() - t:.0f}s)")
+    # The configuration behind search_documents(isins=...): one filtered search per fund.
+    print_by_field(report["configs"]["hybrid +isin"]["templated"]["by_field"],
+                   "per field, hybrid +isin, templated (what the per-fund search mode of the agent sees):")
 
     out = EVALS / "results" / f"retrieval_{report['run_at'].replace(':', '-')}.json"
     out.parent.mkdir(exist_ok=True)

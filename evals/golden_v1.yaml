@@ -5,10 +5,12 @@
 # can never disagree with your answer key.
 #
 # expected.type:
-#   fact     -> exact value of one field for one fund (scored programmatically)
-#   compute  -> derived from several facts (argmin, diff, ...) (scored programmatically)
-#   rubric   -> open question, scored by an LLM judge against must_cover / must_not
+#   fact     -> exact value of one field for one fund
+#   compute  -> derived from several facts (argmin, diff, ...)
+#   rubric   -> open question: must_cover / must_not
 #   behavior -> what the assistant must DO: answer | decline_advice | not_in_docs
+# All types are graded by the LLM judge (src/etf_assistant/evals/judge.py), which gets
+# the exact expected result resolved from the facts files.
 #
 # tags:
 #   alias       -> fund referred to by ticker/nickname (tests entity resolution)

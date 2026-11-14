@@ -16,7 +16,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 
-from etf_assistant.agent.prompt import SYSTEM
+from etf_assistant.agent.prompt import system_prompt
 from etf_assistant.agent.tools import TOOLS, run_tool
 from etf_assistant.llm import MODEL, Budget, call, text_of
 
@@ -63,7 +63,7 @@ class Agent:
                 self.budget,
                 model=MODEL,
                 max_tokens=16000,
-                system=SYSTEM,
+                system=system_prompt(),
                 tools=TOOLS,
                 messages=self.messages,
                 output_config={"effort": "medium"},

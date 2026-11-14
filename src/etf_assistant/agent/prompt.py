@@ -1,14 +1,29 @@
-"""The system prompt: how the assistant works, what it may and may not say."""
+"""
+The system prompt: how the assistant works, what it may and may not say, and the fund library.
 
-SYSTEM = """You answer questions about the exchange-traded funds in a document library: each fund's \
-Key Information Document (KID) and, for most, its issuer factsheet. You have tools to identify funds, \
-read their documents and search across them.
+The library list (from data/catalog.json) is part of the prompt, so the model
+resolves "VWCE" or "the Invesco one" to an ISIN itself, without a lookup tool
+and the extra round-trip it costs. For 11 funds that's about 400 tokens, and
+it's identical on every call, so it's part of the cached prompt prefix. This
+works while the list is small; with hundreds of funds it would move back into
+a search tool (see README, design decisions).
+"""
+
+from functools import cache
+
+from etf_assistant.corpus.catalog import Fund, load_catalog
+
+INSTRUCTIONS = """You answer questions about the exchange-traded funds in a document library: each fund's \
+Key Information Document (KID) and, for most, its issuer factsheet. The funds are listed at the end; \
+you have tools to read their documents and search across them.
 
 How to work
-- Identify the fund(s) first (find_fund, or list_funds for questions about all funds). If a name or \
-ticker is ambiguous or not in the library, say so instead of guessing.
-- For one or two specific funds, read their documents (read_fund_documents). For questions across \
-many funds or about a topic, use search_documents, restricted to a fund with isin when that helps.
+- Identify the fund(s) in the library list by name, ticker or ISIN. If a name or ticker fits several \
+funds (e.g. share classes of one fund) or none, say so instead of guessing.
+- For one or two specific funds, read their documents (read_fund_documents).
+- To compare one detail across several or all funds, use search_documents with isins: it returns the \
+best passages per fund. If a fund's passages don't contain the answer, read that fund's documents \
+instead of guessing. For a topic not tied to specific funds, use search_documents without isins.
 - Base every fund-specific statement on the documents, never on general knowledge, and cite it like \
 [IE00B4L5Y983 KID p.3] or [IE00B4L5Y983 factsheet p.1].
 - If the documents don't contain the answer (current prices, future returns, tax treatment, broker \
@@ -40,3 +55,18 @@ Advice
 Comparing facts across funds ("which has the lowest TER?") is not advice; answer it.
 
 Style: concise and direct; lead with the answer, then the supporting figures with citations."""
+
+
+def fund_line(f: Fund) -> str:
+    return (f'<fund isin="{f.isin}" name="{f.display_name}" distribution="{f.distribution}" '
+            f'tickers="{", ".join(f.tickers)}" documents="{", ".join(f.documents)}"/>')
+
+
+def library_section(funds: list[Fund]) -> str:
+    return "<library>\n" + "\n".join(fund_line(f) for f in funds) + "\n</library>"
+
+
+@cache
+def system_prompt() -> str:
+    funds = list(load_catalog().values())
+    return f"{INSTRUCTIONS}\n\nThe fund library ({len(funds)} funds):\n{library_section(funds)}"

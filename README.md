@@ -66,6 +66,15 @@ uv run ask "What's the ongoing charge of VWCE?"        # one question, shows the
 uv run chat                                            # conversation with follow-up questions
 ```
 
+The system prompt contains the fund library (ISIN, name, share class, tickers from
+`data/catalog.json`), so the model resolves "VWCE" to an ISIN itself. It has three tools:
+
+| Tool | Use |
+|---|---|
+| `read_fund_documents` | Full text of one fund's KID and/or factsheet, with page markers: questions about one or two funds |
+| `search_documents` | Hybrid search. With `isins`: the top passages *per fund*, to compare one detail across funds. Without: top passages across the library, for topics |
+| `calculate_fee_cost` | Exact fee amounts over time, so the model never does compounding in its head |
+
 ## Evaluation
 
 ```bash
@@ -77,3 +86,40 @@ uv run eval-e2e --rejudge evals/results/e2e_<time>.json   # grade saved answers 
 ```
 
 Results are written to `evals/results/` so runs can be compared over time.
+
+## Design decisions
+
+Each decision is backed by an eval result in `evals/results/`.
+
+**The fund list lives in the system prompt, not behind a lookup tool.** With
+`find_fund`/`list_funds` tools, 72 of 154 tool calls in a full eval run (47%)
+were fund lookups, and 60 of 64 questions started with one. Matching a ticker
+or nickname to a fund is what language models do well; the cost was the extra
+round-trip. For 11 funds the list is about 400 tokens. With hundreds of funds
+it no longer fits, and lookup moves into a search tool over a fund index.
+
+**Questions about one or two funds read the whole documents instead of retrieved
+chunks.** A KID plus factsheet fits easily in the context window, and reading it is
+near-complete, while the best retrieval setting (hybrid, filtered to the right fund)
+finds the evidence in the top 5 chunks for 95% of the golden questions but only 70%
+of the templated ones.
+
+**Comparisons across funds use one filtered search per fund.** Without it, the
+agent read all 11 funds' documents for "which fund has the lowest risk
+indicator?" (13 tool calls). Fund-filtered search is reliable for KID fields
+(costs, risk indicator, holding period: 9-11 of 11 in the top 5) and weak for
+factsheet key facts (number of holdings, index name, domicile, fund size: 3-5 of
+9-11), so the agent is told to read a fund's documents when its passages miss
+the answer. `uv run eval-retrieval` prints this per-field table.
+
+**Hybrid search (BM25 + vectors) with synonyms.** Hybrid has the best recall on
+both query sets (golden R@5 0.76 vs 0.62 BM25 and 0.67 vector; templated R@10 0.80
+vs 0.71 and 0.55); on templated questions BM25 alone ranks slightly better at the
+very top (MRR 0.39 vs 0.36). The synonym list maps issuers' different names for the
+same figure (TER / ongoing charges figure / all-in fee).
+
+**The answer key is out of the assistant's reach.** Fund names come from an LLM
+extraction of the documents themselves (`build-catalog`, tickers verified against
+the text), never from `data/facts`, and `tests/test_layers.py` checks that no
+module outside `evals/` imports the evals package.
+

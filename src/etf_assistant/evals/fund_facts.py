@@ -1,10 +1,12 @@
 """
-Schema for the verified facts table: your exact answer key for the evals
-and the data behind the agent's lookup_fund tool.
+Schema for the verified facts table: the exact answer key for the evals.
 
-Every value carries where it came from (document + page). That way:
-  - the agent can cite exact values, not only retrieved passages
-  - you can check citations automatically ("did the answer cite the page the fact is on?")
+The assistant never reads these files (only evals/ may; tests/test_layers.py
+checks it). If it could, the end-to-end eval would only test whether it can
+copy from the file it's graded against.
+
+Every value carries where it came from (document + page + quote). That way:
+  - you can check citations automatically (check_facts.py, check_chunks.py, eval_retrieval.py)
   - when you hand-verify, you open the exact page instead of hunting for it
 
 Workflow:

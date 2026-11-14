@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 from etf_assistant.corpus.manifest import load_manifest
 from etf_assistant.corpus.parse import load_pages
-from etf_assistant.llm import MODEL, client
+from etf_assistant.llm import MODEL, Budget, call
 from etf_assistant.paths import CATALOG, DATA
 
 
@@ -54,14 +54,18 @@ Extract the fields of the schema. Use only what the documents state.
 {pages}"""
 
 
-def extract(isin: str, docs: dict[str, list[str]]) -> Extracted:
+MAX_COST_USD = 0.25  # hard cap for a full rebuild; 11 funds cost about a cent
+
+
+def extract(isin: str, docs: dict[str, list[str]], budget: Budget) -> Extracted:
     # KID: page 1 names the product. Factsheet: all pages, the listings table can be anywhere.
     parts = []
     for doc_type, pages in docs.items():
         for n, page in enumerate(pages if doc_type == "factsheet" else pages[:1], 1):
             parts.append(f'<document type="{doc_type}" page="{n}">\n{page}\n</document>')
     pages = "\n\n".join(parts)
-    response = client().messages.parse(
+    response, _ = call(
+        budget, parse=True,
         model=MODEL,
         max_tokens=4096,
         output_config={"effort": "low"},  # reading off a page, no reasoning needed
@@ -84,15 +88,17 @@ def build() -> list[Fund]:
     for (isin, doc_type), row in sorted(load_manifest().items()):
         by_isin.setdefault(isin, {})[doc_type] = load_pages(DATA / row["file_path"])
 
+    budget = Budget(MAX_COST_USD)
     funds = []
     for isin, docs in by_isin.items():
-        e = extract(isin, docs)
+        e = extract(isin, docs, budget)
         all_text = "\n".join(p for pages in docs.values() for p in pages)
         e.tickers, dropped = verified_tickers(e.tickers, all_text)
         fund = Fund(isin=isin, documents=sorted(docs), **e.model_dump())
         funds.append(fund)
         note = f"  (dropped, not in documents: {dropped})" if dropped else ""
         print(f"{isin}  {fund.display_name}  [{fund.distribution}]  tickers={fund.tickers}{note}", file=sys.stderr)
+    print(f"cost: ${budget.spent:.4f} for {budget.calls} calls", file=sys.stderr)
     return funds
 
 
