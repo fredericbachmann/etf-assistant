@@ -91,6 +91,20 @@ Results are written to `evals/results/` so runs can be compared over time.
 
 Each decision is backed by an eval result in `evals/results/`.
 
+Effect of the last two decisions below (full end-to-end run, 64 questions,
+`e2e_2026-11-14T15-03-01` before, `e2e_2026-11-14T16-03-06` after):
+
+| | lookup tools, documents for comparisons | fund list in prompt, per-fund search |
+|---|---|---|
+| passed | 63/64 | 62/64 |
+| tool calls per question | 3.2 | 1.2 |
+| latency, median / max | 5.5 s / 16.3 s | 4.1 s / 13.7 s |
+| agent cost per question | $0.0024 | $0.0017 |
+| comparisons: tool calls per question | 8.1 | 1.5 |
+
+The two failures after the change are headline/body contradictions (correct figures,
+wrong one-line summary); both questions passed in a separate run minutes earlier.
+
 **The fund list lives in the system prompt, not behind a lookup tool.** With
 `find_fund`/`list_funds` tools, 72 of 154 tool calls in a full eval run (47%)
 were fund lookups, and 60 of 64 questions started with one. Matching a ticker
