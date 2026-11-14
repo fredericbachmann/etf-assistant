@@ -32,6 +32,16 @@ def client() -> anthropic.Anthropic:
     return anthropic.Anthropic()
 
 
+def warm_up() -> None:
+    """One free request (model info) before starting parallel calls.
+
+    With `ant auth login` credentials, an expired access token is renewed on the
+    next request, and the refresh token is single-use. If several threads find the
+    token expired at once, they all try to renew it and all but one are rejected
+    ("Refresh token not found or invalid"). Renewing once up front avoids that."""
+    client().models.retrieve(MODEL)
+
+
 def text_of(message) -> str:
     """The text of a response. Read blocks by type: with thinking on, the first block can be a thinking block."""
     return "".join(b.text for b in message.content if b.type == "text")

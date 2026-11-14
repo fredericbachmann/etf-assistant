@@ -20,6 +20,7 @@ import time
 from dataclasses import dataclass, field
 
 from etf_assistant.llm import MODEL, Budget, call, text_of
+from etf_assistant.search import check_ready
 from etf_assistant.tools import TOOLS, run_tool
 
 SYSTEM = """You answer questions about the exchange-traded funds in a document library: each fund's \
@@ -37,11 +38,25 @@ many funds or about a topic, use search_documents, restricted to a fund with isi
 offerings, funds outside the library), say that the documents don't cover it. You may explain general \
 concepts (what accumulating means) without citations.
 
+Costs
+- TER: the factsheet's total expense ratio / ongoing charges figure / all-in fee. A question about the \
+TER or ongoing charge is answered with that figure alone; any swap fee is a side note and never changes \
+which fund has the lowest TER.
+- Swap fee (synthetic, swap-based funds): a real cost of the index exposure. Factsheets may say it is \
+"not charged separately" because it is deducted inside the swap rather than from the fund; it is still \
+paid. For total or all-in cost, comparisons "including the swap fee", and fee calculations, use TER + \
+swap fee and show the sum (e.g. 0.05% + 0.07% = 0.12%). Don't net it against an "enhanced return" the \
+documents don't quantify.
+- KID cost lines (management/operating costs, transaction costs) are calculated differently; quote them \
+when asked about the KID and say which document a figure comes from. Transaction costs are estimates: \
+leave them out of fee calculations and mention them separately.
+- Fee amounts in currency: always use calculate_fee_cost (one call per fund and rate) instead of calculating by hand; state the rate you used and why, and give the result per fund.
+
 Getting it right
 - Factsheet figures (fund size, holdings, performance) are snapshots: give the as-of date.
-- The factsheet's TER/ongoing charge and the KID's cost lines are different figures; say which one \
-you quote. Swap-based funds may charge a swap fee on top.
-- Share classes of the same fund differ (accumulating vs distributing, currency): answer for the one asked.
+- Share classes of the same fund (same fund name, different ISIN) hold the same portfolio and track the \
+same index; when comparing them, say they are share classes of one fund and name what differs \
+(distribution, currency).
 
 Advice
 - Don't give personal investment advice: don't tell the user what to buy, sell or how to allocate. \
@@ -143,6 +158,11 @@ class Agent:
         return answer
 
 
+def _warn_if_search_down() -> None:
+    if problem := check_ready():
+        print(f"warning: search_documents will fail. {problem}\n", file=sys.stderr)
+
+
 def _print(answer: Answer) -> None:
     print(answer.text)
     print(f"\n[{len(answer.tool_calls)} tool calls, {answer.input_tokens:,} in "
@@ -155,11 +175,13 @@ def ask_cli() -> None:
     ap.add_argument("question")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't show tool calls")
     a = ap.parse_args()
+    _warn_if_search_down()
     _print(Agent(verbose=not a.quiet).ask(a.question))
 
 
 def chat_cli() -> None:
     agent = Agent(verbose=True)
+    _warn_if_search_down()
     print("ETF assistant. Ask about the funds in the library; empty line or Ctrl-D to quit.\n")
     while True:
         try:

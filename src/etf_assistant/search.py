@@ -204,6 +204,17 @@ def _knn_query(query: str, k: int, filters: list[dict]) -> dict:
     return {"knn": {"embedding": knn}}
 
 
+def check_ready() -> str | None:
+    """None if OpenSearch is reachable and the index exists, else what's wrong and how to fix it."""
+    try:
+        if not client().indices.exists(index=INDEX):
+            return f"OpenSearch is running but index '{INDEX}' doesn't exist: run `uv run index`"
+    except Exception:
+        url = os.environ.get("OPENSEARCH_URL", "http://localhost:9200")
+        return f"OpenSearch isn't reachable at {url}: start Docker, then `docker compose up -d`"
+    return None
+
+
 @cache
 def check_index_model() -> None:
     """Query vectors must come from the same model as the indexed vectors."""

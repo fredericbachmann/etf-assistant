@@ -77,6 +77,27 @@ TOOLS = [
 ]
 
 
+TOOLS.append({
+    "name": "calculate_fee_cost",
+    "description": (
+        "Compute exactly how much money annual fees take over time, assuming zero market return. "
+        "Use it for every fee amount in currency instead of calculating by hand. "
+        "mode 'lump_sum': `amount` invested once; 'monthly': `amount` invested at the start of every month. "
+        "rate_pct is the annual cost rate in percent, e.g. 0.12 for TER 0.05% + swap fee 0.07%."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "rate_pct": {"type": "number"},
+            "amount": {"type": "number"},
+            "years": {"type": "integer"},
+            "mode": {"type": "string", "enum": ["lump_sum", "monthly"]},
+        },
+        "required": ["rate_pct", "amount", "years", "mode"],
+    },
+})
+
+
 class ToolError(Exception):
     """An error the model should see and can react to (wrong ISIN, ...)."""
 
@@ -152,11 +173,34 @@ def search_documents(query: str, isin: str | None = None, doc_type: str | None =
     )
 
 
+def calculate_fee_cost(rate_pct: float, amount: float, years: int, mode: str) -> str:
+    """Zero-return fee drag. Fees are charged continuously in reality; monthly steps are close enough."""
+    if not (0 <= rate_pct < 10 and amount > 0 and 0 < years <= 100):
+        raise ToolError("expected 0 <= rate_pct < 10, amount > 0, 0 < years <= 100")
+    rate = rate_pct / 100
+    if mode == "lump_sum":
+        paid_in = amount
+        value = amount * (1 - rate) ** years  # the fee is taken from what's left each year
+        method = f"{amount:,.2f} invested once; each year {rate_pct}% of the remaining value is charged"
+    elif mode == "monthly":
+        paid_in, value = 0.0, 0.0
+        for _ in range(years * 12):
+            paid_in += amount
+            value += amount
+            value *= 1 - rate / 12  # a twelfth of the annual rate, on the current balance
+        method = f"{amount:,.2f} invested at the start of each month; {rate_pct}%/12 charged monthly on the balance"
+    else:
+        raise ToolError(f"unknown mode {mode!r}")
+    return (f"{method}, {years} years, zero market return.\n"
+            f"total invested: {paid_in:,.2f}\nvalue at the end: {value:,.2f}\nfees paid: {paid_in - value:,.2f}")
+
+
 HANDLERS = {
     "find_fund": find_fund,
     "list_funds": list_funds,
     "read_fund_documents": read_fund_documents,
     "search_documents": search_documents,
+    "calculate_fee_cost": calculate_fee_cost,
 }
 
 

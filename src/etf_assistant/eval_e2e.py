@@ -31,8 +31,9 @@ from datetime import datetime
 from etf_assistant.agent import Agent
 from etf_assistant.catalog import load_catalog
 from etf_assistant.judge import judge
-from etf_assistant.llm import Budget, BudgetExceeded
+from etf_assistant.llm import Budget, BudgetExceeded, warm_up
 from etf_assistant.paths import EVALS, FACTS
+from etf_assistant.search import check_ready
 
 RESOLVED = EVALS / "golden_v1.resolved.json"
 WORKERS = 4  # questions in flight at once
@@ -141,6 +142,9 @@ def main() -> None:
         questions = [q for q in questions if q["category"] == a.category]
     names = {i: f.display_name for i, f in load_catalog().items()}
 
+    if not a.rejudge and (problem := check_ready()):
+        sys.exit(f"preflight failed: {problem}")  # don't measure a half-broken system
+    warm_up()  # renew credentials once, before threads race to do it
     budget = Budget(a.max_cost)
     print(f"running {len(questions)} questions, {WORKERS} at a time, hard cap ${budget.cap:.3f}")
     t0 = time.time()

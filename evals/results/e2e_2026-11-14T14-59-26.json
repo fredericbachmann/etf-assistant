@@ -1,0 +1,156 @@
+{
+  "run_at": "2026-11-14T14:59:26",
+  "rejudged_from": null,
+  "max_cost": 0.06,
+  "spent": 0.040472274999999995,
+  "results": [
+    {
+      "id": "f04",
+      "category": "fact",
+      "tags": [],
+      "question": "Is the Invesco S&P 500 UCITS ETF physically or synthetically replicated?",
+      "status": "error",
+      "error": "WorkloadIdentityError: user_oauth refresh failed (HTTP 400): {'error': 'invalid_grant', 'error_description': 'Refresh token not found or invalid'} [request_id=req_011Ch29iFtakhKaSxBSW1rCT]"
+    },
+    {
+      "id": "f05",
+      "category": "fact",
+      "tags": [],
+      "question": "What swap fee does the Invesco S&P 500 ETF charge?",
+      "answer": "The Invesco S&P 500 UCITS ETF Acc (ISIN IE00B3YCGJ38) has a swap fee of **0.07% p.a.** [IE00B3YCGJ38 factsheet p.1], as of 30 September 2026.\n\nThe factsheet says the swap fee reflects the cost of providing the fund's index exposure. It also says the fee is included in the swap's enhanced return and is not charged separately. It is still a cost of the index exposure.\n\nFor reference, the ongoing charge is 0.05% p.a. [IE00B3YCGJ38 factsheet p.1]. Including the swap fee, the total is 0.05% + 0.07% = 0.12% p.a.",
+      "stop_reason": "end_turn",
+      "seconds": 6.8,
+      "tool_calls": [
+        {
+          "name": "find_fund",
+          "input": {
+            "query": "Invesco S&P 500 ETF"
+          },
+          "error": false
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "swap fee",
+            "isin": "IE00B3YCGJ38",
+            "k": 8
+          },
+          "error": true
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.002264275,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: fund IE00B3YCGJ38 swap fee must be 0.07%. Answer states swap fee 0.07% p.a. for IE00B3YCGJ38 (Invesco S&P 500 UCITS ETF Acc). Correct value. It gives a substantive answer, not a refusal. Extra details (ongoing charge 0.05%, sum 0.12%) are consistent with the convention that a list of fields means their sum, and are extra correct detail. The statement that the fee is included in swap return and not charged separately is a caveat attributed to the documents, not a contradiction; it does not change the swap fee value asked. Passes.",
+      "judge_cost": 0.0002297,
+      "status": "done"
+    },
+    {
+      "id": "c03",
+      "category": "compare",
+      "tags": [
+        "trap"
+      ],
+      "question": "Which S&P 500 fund you cover has the lowest annual cost once you include any swap fee?",
+      "status": "error",
+      "error": "WorkloadIdentityError: user_oauth refresh failed (HTTP 400): {'error': 'invalid_grant', 'error_description': 'Refresh token not found or invalid'} [request_id=req_011Ch29iFt6BmKrjeqBqRHkb]"
+    },
+    {
+      "id": "c08",
+      "category": "compare",
+      "tags": [],
+      "question": "Rank all the funds you cover by TER, cheapest first.",
+      "status": "error",
+      "error": "WorkloadIdentityError: user_oauth refresh failed (HTTP 400): {'error': 'invalid_grant', 'error_description': 'Refresh token not found or invalid'} [request_id=req_011Ch29iFsqu7dJURCt5Q5kg]"
+    },
+    {
+      "id": "k02",
+      "category": "calc",
+      "tags": [
+        "alias"
+      ],
+      "question": "I put €200 a month into VWCE for 10 years. Ignoring returns, roughly how much goes to fees?",
+      "status": "error",
+      "error": "WorkloadIdentityError: user_oauth refresh failed (HTTP 400): {'error': 'invalid_grant', 'error_description': 'Refresh token not found or invalid'} [request_id=req_011Ch29iHSbcu2S6iDPksoy5]"
+    },
+    {
+      "id": "k03",
+      "category": "calc",
+      "tags": [
+        "alias",
+        "trap"
+      ],
+      "question": "Same €200 a month for 10 years: how do total fees compare between the Invesco S&P 500 and CSP1?",
+      "answer": "**Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) has higher total fees than iShares Core S&P 500 UCITS ETF USD Acc (CSP1, IE00B5BMR087).** Including the swap fee, Invesco costs 0.12% a year against 0.07% for CSP1.\n\n**Annual rates**\n- **Invesco:** ongoing charge 0.05% plus swap fee 0.07% = **0.12% p.a.** [IE00B3YCGJ38 factsheet p.1]. The factsheet says the swap fee is \"not charged separately\" because it is included in the swap's enhanced return, but it is still a cost of the index exposure.\n- **CSP1:** total expense ratio **0.07% p.a.** [IE00B5BMR087 factsheet p.1]. The factsheet lists no separate swap fee, and CSP1 is physically replicated [IE00B5BMR087 factsheet p.1].\n\n**Illustrative 10-year total (€200/month = €24,000 contributed)**\n\nI assumed no investment growth, so the balance rises in a straight line. Each year's fee is charged on that year's average balance, which gives €120,000 of balance-years over the 10 years.\n- **Invesco:** 0.12% × €120,000 ≈ **€144**\n- **CSP1:** 0.07% × €120,000 ≈ **€84**\n- **Difference:** about **€60** in CSP1's favour\n\nWith market growth, the balance and therefore both fee totals would be higher, though the gap would widen only in proportion to the balance. The figures exclude transaction costs (estimated 0.00% for both funds in the KIDs) and any broker or platform fees, which the documents do not cover.\n\n**KID cost lines (for reference)**\n- Invesco KID: management and operating costs 0.05% p.a. [IE00B3YCGJ38 KID p.2]. This does not include the swap fee.\n- CSP1 KID: management and operating costs 0.07% p.a. [IE00B5BMR087 KID p.3].",
+      "stop_reason": "end_turn",
+      "seconds": 12.2,
+      "tool_calls": [
+        {
+          "name": "find_fund",
+          "input": {
+            "query": "Invesco S&P 500"
+          },
+          "error": false
+        },
+        {
+          "name": "find_fund",
+          "input": {
+            "query": "CSP1"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B5BMR087",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.004189175000000001,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Field check: the answer gives Invesco fees of €144 (0.12% × €120,000) against the expected €144.63, within 10%. It gives CSP1 fees of €84 against the expected €84.5, within 10%. The comparison is correct: Invesco is higher, and the answer names both ISINs. Required behavior: the answer gives a substantive, committed figure-based answer and does not refuse or deflect. The transaction-cost and broker-fee caveats and the KID cost lines are extra detail, not contradictions.",
+      "judge_cost": 0.00038420000000000007,
+      "status": "done"
+    },
+    {
+      "id": "o01",
+      "category": "open",
+      "tags": [
+        "alias",
+        "consistency"
+      ],
+      "question": "What's the difference between VWRL and VWCE?",
+      "status": "not_run",
+      "error": "next call could cost up to $0.0115; spent $0.0340 + in flight $0.0166 would exceed the $0.060 cap"
+    },
+    {
+      "id": "a11",
+      "category": "advice",
+      "tags": [
+        "over_refusal"
+      ],
+      "question": "Which of these funds has the lowest TER?",
+      "status": "not_run",
+      "error": "next call could cost up to $0.0082; spent $0.0330 + in flight $0.0247 would exceed the $0.060 cap"
+    }
+  ]
+}
