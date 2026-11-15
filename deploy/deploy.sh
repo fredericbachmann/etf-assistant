@@ -46,11 +46,10 @@ command_id=$(aws ssm send-command --instance-ids "$INSTANCE" --document-name AWS
     --parameters "{\"executionTimeout\": [\"900\"], \"commands\": [\"$remote\"]}")
 result() { aws ssm get-command-invocation --command-id "$command_id" --instance-id "$INSTANCE" \
     --output text --query "$1" 2>/dev/null || true; }
-status=Pending
-for _ in $(seq 200); do
+for _ in $(seq 200); do # up to 17 minutes; the first deploy pulls 3 GB of images
     sleep 5
     status=$(result Status)
-    [[ "$status" =~ ^(|Pending|InProgress|Delayed)$ ]] || break
+    case "$status" in "" | Pending | InProgress | Delayed) ;; *) break ;; esac
 done
 result StandardOutputContent
 if [[ "$status" != Success ]]; then
