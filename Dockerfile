@@ -26,7 +26,8 @@ RUN uv sync --locked --no-dev
 # download the embedding model now, not on the first question
 RUN python -c "from etf_assistant.retrieval.embeddings import embed_query; embed_query('warm up')"
 
-RUN useradd --uid 1000 --no-create-home app && chown -R app /app/models
+# with a home directory: onnxruntime and others keep small files there
+RUN useradd --uid 1000 --create-home app && chown -R app /app/models
 USER app
 
 ENV HOST=0.0.0.0 PORT=7860
