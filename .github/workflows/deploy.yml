@@ -1,0 +1,39 @@
+# Every push to main goes live: tests, then deploy/deploy.sh (build images, update the server).
+# To roll back, run this workflow by hand ("Run workflow") with an earlier commit of main.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Commit to deploy (empty = the newest on main)
+        required: false
+
+concurrency: deploy # one at a time; a second one waits
+
+env:
+  AWS_REGION: eu-north-1
+  # created by deploy/aws/stack.yaml; AWS lets only this repository's main branch use it
+  DEPLOY_ROLE: arn:aws:iam::379959319583:role/etf-assistant-github-deploy
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-24.04-arm # the server is ARM: build its images natively
+    permissions:
+      id-token: write # to log in to AWS without stored keys (OIDC)
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit }}
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.DEPLOY_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: deploy/deploy.sh

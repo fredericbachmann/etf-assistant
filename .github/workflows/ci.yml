@@ -1,0 +1,22 @@
+# The offline tests, on every push and pull request. No evals here: they call the Claude API.
+name: CI
+
+on:
+  push:
+    branches-ignore: [main] # on main, deploy.yml runs these tests itself
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run pytest -q

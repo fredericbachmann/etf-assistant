@@ -1,0 +1,288 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  ETF Assistant on one small EC2 instance (Docker Compose: Caddy, the web app, OpenSearch), with
+  the image registry, data bucket and GitHub deploy role it needs - one stack, so deleting it
+  removes everything that costs money.
+
+# Create or update (the stack must be named etf-assistant: scripts and workflows look it up by name):
+#   aws cloudformation deploy --stack-name etf-assistant --template-file deploy/aws/stack.yaml \
+#     --capabilities CAPABILITY_NAMED_IAM --parameter-overrides ImageId=<ami> GitHubRepo=<owner>/<repo>
+# Delete: empty the bucket first (aws s3 rm s3://<bucket> --recursive), then delete the stack.
+
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+
+Parameters:
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Description: >-
+      Amazon Linux 2023 for ARM. A fixed id, not "latest": a newer image on a later stack update
+      would replace the instance. Look it up once with
+      aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+  InstanceType:
+    Type: String
+    Default: t4g.small # 2 GB: OpenSearch needs about 900 MB, the app about 250 MB
+    AllowedValues: [t4g.micro, t4g.small, t4g.medium]
+  Domain:
+    Type: String
+    Default: etf-assistant.duckdns.org
+    Description: Host name of the site. Its DNS record must point at the PublicIp output.
+  GitHubRepo:
+    Type: String
+    Default: ""
+    Description: >-
+      owner/repo whose main branch may deploy. Empty: no GitHub role. Emptying it again later
+      deletes the role and the identity provider.
+  ComposeVersion:
+    Type: String
+    Default: v5.7.1
+
+Conditions:
+  WithGitHub: !Not [!Equals [!Ref GitHubRepo, ""]]
+
+Resources:
+  # ------------------------------------------------------------------ storage
+  # Holds data.tar.gz (PDFs, parsed pages, chunks: none of it is in git) and the deploy files.
+  # No versioning and no Retain: everything in it can be rebuilt from the laptop.
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: HttpsOnly
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource: [!GetAtt Bucket.Arn, !Sub "${Bucket.Arn}/*"]
+            Condition: { Bool: { "aws:SecureTransport": "false" } }
+
+  # The names are fixed because docker-compose.prod.yml refers to them.
+  AppRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${AWS::StackName}/app"
+      EmptyOnDelete: true
+      ImageScanningConfiguration: { ScanOnPush: true }
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules": [{"rulePriority": 1, "description": "keep the last 5 images",
+            "selection": {"tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 5},
+            "action": {"type": "expire"}}]}
+
+  OpenSearchRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${AWS::StackName}/opensearch"
+      EmptyOnDelete: true
+      ImageScanningConfiguration: { ScanOnPush: true }
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules": [{"rulePriority": 1, "description": "keep the last 3 images",
+            "selection": {"tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 3},
+            "action": {"type": "expire"}}]}
+
+  # ------------------------------------------------------------------ server
+  # A public web server: 80 and 443 have to be open to everyone. Nothing else is: no SSH
+  # (shell access is Systems Manager Session Manager), and OpenSearch publishes no port.
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ETF Assistant web server - HTTP and HTTPS only
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0, Description: "Redirect to HTTPS and Let's Encrypt challenge" }
+        - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: HTTPS }
+        - { IpProtocol: udp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: HTTP/3 }
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore" # Session Manager, Run Command
+      Policies:
+        - PolicyName: deploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: RegistryLogin
+                Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: "*" # this action has no resource to restrict it to
+              - Sid: PullImages
+                Effect: Allow
+                Action: [ecr:BatchGetImage, ecr:GetDownloadUrlForLayer, ecr:BatchCheckLayerAvailability]
+                Resource: [!GetAtt AppRepository.Arn, !GetAtt OpenSearchRepository.Arn]
+              - Sid: ReadBucket
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${Bucket.Arn}/*"
+              - Sid: ListBucket
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt Bucket.Arn
+              - Sid: ReadSecrets # ANTHROPIC_API_KEY, APP_PASSWORD: put there by hand, never in this template
+                Effect: Allow
+                Action: ssm:GetParametersByPath
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}"
+                  - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/*"
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds: [!GetAtt SecurityGroup.GroupId] # default VPC, a public subnet
+      # "standard": when the CPU credits run out the instance slows down. The default for t4g,
+      # "unlimited", bills extra CPU instead.
+      CreditSpecification: { CPUCredits: standard }
+      MetadataOptions:
+        HttpTokens: required # IMDSv2 only
+        HttpPutResponseHopLimit: 1 # containers can't reach the instance's credentials
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeType: gp3, VolumeSize: 20, Encrypted: true, DeleteOnTermination: true }
+      Tags:
+        - { Key: Name, Value: !Ref "AWS::StackName" }
+      # Runs once, at the first boot. A change here does not run again on an existing instance.
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+
+          # 1 GB of swap: headroom for OpenSearch + app on 2 GB
+          dd if=/dev/zero of=/swapfile bs=1M count=1024
+          chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+          echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+          # OpenSearch memory-maps its index files
+          echo 'vm.max_map_count=262144' > /etc/sysctl.d/99-opensearch.conf
+          sysctl --system
+
+          dnf install -y docker
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/${ComposeVersion}/docker-compose-linux-aarch64
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          systemctl enable --now docker
+
+          # what deploy/remote.sh needs to know about this stack
+          mkdir -p /opt/${AWS::StackName}
+          cat > /opt/${AWS::StackName}/stack.env <<CONFIG
+          AWS_REGION=${AWS::Region}
+          BUCKET=${Bucket}
+          REGISTRY=${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com
+          DOMAIN=${Domain}
+          SECRETS_PATH=/${AWS::StackName}
+          CONFIG
+
+  # A fixed address for the DNS record: it survives stopping and starting the instance.
+  PublicIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref Instance
+
+  # ------------------------------------------------------------------ GitHub Actions
+  # GitHub proves which repository and branch a workflow runs for with a short-lived token;
+  # AWS exchanges it for this role. No AWS keys are stored in GitHub.
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: WithGitHub
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+
+  GitHubDeployRole:
+    Type: AWS::IAM::Role
+    Condition: WithGitHub
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-github-deploy" # fixed: .github/workflows/deploy.yml names it
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Federated: !Ref GitHubOidcProvider }
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
+                # only workflows running for the main branch of this one repository
+                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubRepo}:ref:refs/heads/main"
+      Policies:
+        - PolicyName: deploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ReadStackOutputs
+                Effect: Allow
+                Action: cloudformation:DescribeStacks
+                Resource: !Ref "AWS::StackId"
+              - Sid: RegistryLogin
+                Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: "*" # this action has no resource to restrict it to
+              - Sid: PushImages
+                Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:DescribeImages
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:PutImage
+                Resource: [!GetAtt AppRepository.Arn, !GetAtt OpenSearchRepository.Arn]
+              - Sid: UploadDeployFiles # not data.tar.gz: the documents come from the laptop
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${Bucket.Arn}/deploy/*"
+              - Sid: RunDeployScript # a shell command as root, on this one instance only
+                Effect: Allow
+                Action: ssm:SendCommand
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}::document/AWS-RunShellScript"
+                  - !Sub "arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/${Instance}"
+              - Sid: ReadDeployResult
+                Effect: Allow
+                Action: ssm:GetCommandInvocation
+                Resource: "*" # this action has no resource to restrict it to
+
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  PublicIp:
+    Value: !Ref PublicIp
+    Description: Point the DNS record of the domain at this address.
+  Bucket:
+    Value: !Ref Bucket
+  Registry:
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com"
+  Url:
+    Value: !Sub "https://${Domain}"

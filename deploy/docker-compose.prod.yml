@@ -1,7 +1,9 @@
-# Production: everything on one EC2 instance, in /opt/etf-assistant next to data/ and .env.
-# deploy/remote.sh runs it with REGISTRY, IMAGE_TAG and DOMAIN set.
-#   docker compose up -d                      start or update
-#   docker compose run --rm indexer           (re)build the search index from data/chunks.jsonl
+# Production: everything on one EC2 instance, in /opt/etf-assistant. deploy/remote.sh puts
+# these next to this file and runs `docker compose up -d`:
+#   .env          REGISTRY, IMAGE_TAG, OPENSEARCH_TAG, DOMAIN (read by Compose for the ${...} below)
+#   secrets.env   ANTHROPIC_API_KEY, APP_PASSWORD, ... from Parameter Store (the app's environment)
+#   data/         the documents, from data.tar.gz
+# By hand on the server:  docker compose ps | logs app | run --rm indexer
 name: etf-prod # not etf-assistant: that's the dev compose project, with its own OpenSearch volume
 
 x-app: &app
@@ -14,7 +16,7 @@ x-app: &app
 
 services:
   opensearch:
-    image: ${REGISTRY}/etf-assistant/opensearch:${IMAGE_TAG}
+    image: ${REGISTRY}/etf-assistant/opensearch:${OPENSEARCH_TAG}
     environment:
       - discovery.type=single-node
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
@@ -31,7 +33,7 @@ services:
 
   app:
     <<: *app
-    env_file: .env # ANTHROPIC_API_KEY, APP_PASSWORD, DAILY_BUDGET_USD: written by remote.sh from Parameter Store
+    env_file: secrets.env
     volumes:
       - ./data:/app/data:ro
     mem_limit: 768m
@@ -61,7 +63,7 @@ services:
     profiles: [tools]
     command: ["index"]
     volumes:
-      - ./data:/app/data # writable: index caches embeddings in data/embedding_cache
+      - ./data:/app/data # writable: embeddings missing from data/embedding_cache are added to it
 
 volumes:
   opensearch-data:
