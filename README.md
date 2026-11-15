@@ -102,6 +102,43 @@ every citation to the cited page of the PDF. Settings are environment variables:
 `GET /health` returns 503 when search isn't working, for uptime checks.
 `/documents/<file>` serves only the PDFs listed in `manifest.csv`, never the rest of `data/`.
 
+## Deployment (AWS)
+
+One EC2 instance (t4g.small, ARM) runs `deploy/docker-compose.prod.yml`: Caddy for
+HTTPS, the web app, and OpenSearch without the plugins the app doesn't use. Everything
+in AWS is one CloudFormation stack, `deploy/aws/stack.yaml`, named `etf-assistant`.
+
+| In AWS | For |
+|---|---|
+| EC2 instance + Elastic IP | the server; ports 80 and 443 only, shell access through Session Manager |
+| ECR repositories `etf-assistant/app`, `etf-assistant/opensearch` | the container images |
+| S3 bucket | `data.tar.gz` (the documents) and the deploy files |
+| Parameter Store `/etf-assistant/*` | the app's secrets: `APP_PASSWORD`, `ANTHROPIC_API_KEY`; optional settings such as `DAILY_BUDGET_USD` |
+
+```bash
+export AWS_PROFILE=etf
+deploy/push-data.sh       # after the PDFs changed (and ingest + index locally): upload the documents
+deploy/deploy.sh          # build and push the images of the current commit, update the server
+```
+
+`deploy.sh` runs `deploy/remote.sh` on the server through Systems Manager. That script
+fetches the documents and secrets, pulls the images, rebuilds the search index and waits
+for `/health`. To roll back, check out an earlier commit and run `deploy.sh` again.
+
+```bash
+# set or change a secret, then deploy again to apply it
+aws ssm put-parameter --name /etf-assistant/ANTHROPIC_API_KEY --type SecureString --overwrite --value ...
+# read the login password (user name: etf)
+aws ssm get-parameter --name /etf-assistant/APP_PASSWORD --with-decryption --query Parameter.Value --output text
+# a shell on the server (needs the Session Manager plugin); the app is in /opt/etf-assistant
+aws ssm start-session --target $(aws cloudformation describe-stacks --stack-name etf-assistant \
+    --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" --output text)
+```
+
+To remove everything: `aws s3 rm s3://<bucket> --recursive`, then
+`aws cloudformation delete-stack --stack-name etf-assistant`, then delete the parameters
+under `/etf-assistant/`.
+
 ## Evaluation
 
 ```bash
