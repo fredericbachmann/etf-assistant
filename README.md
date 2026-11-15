@@ -135,7 +135,16 @@ aws ssm start-session --target $(aws cloudformation describe-stacks --stack-name
     --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" --output text)
 ```
 
-To remove everything: `aws s3 rm s3://<bucket> --recursive`, then
+Pushes to `main` deploy through `.github/workflows/deploy.yml`, which runs the same
+`deploy.sh` as the stack's `etf-assistant-github-deploy` user. Its access key is stored
+as the repository secrets `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. To replace the key:
+
+```bash
+aws iam create-access-key --user-name etf-assistant-github-deploy   # then: gh secret set ... for both values
+aws iam delete-access-key --user-name etf-assistant-github-deploy --access-key-id <the old one>
+```
+
+To remove everything: delete that user's access key, run `aws s3 rm s3://<bucket> --recursive`, then
 `aws cloudformation delete-stack --stack-name etf-assistant`, then delete the parameters
 under `/etf-assistant/`.
 

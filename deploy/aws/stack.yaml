@@ -5,8 +5,8 @@ Description: >-
   removes everything that costs money.
 
 # Create or update (the stack must be named etf-assistant: scripts and workflows look it up by name):
-#   aws cloudformation deploy --stack-name etf-assistant --template-file deploy/aws/stack.yaml \
-#     --capabilities CAPABILITY_NAMED_IAM --parameter-overrides ImageId=<ami> GitHubRepo=<owner>/<repo>
+#   aws cloudformation deploy --stack-name etf-assistant --template-file deploy/aws/stack.yaml --tags project=etf-assistant \
+#     --capabilities CAPABILITY_NAMED_IAM --parameter-overrides ImageId=<ami>
 # Delete: empty the bucket first (aws s3 rm s3://<bucket> --recursive), then delete the stack.
 
 Metadata:
@@ -28,18 +28,9 @@ Parameters:
     Type: String
     Default: etf-assistant.duckdns.org
     Description: Host name of the site. Its DNS record must point at the PublicIp output.
-  GitHubRepo:
-    Type: String
-    Default: ""
-    Description: >-
-      owner/repo whose main branch may deploy. Empty: no GitHub role. Emptying it again later
-      deletes the role and the identity provider.
   ComposeVersion:
     Type: String
     Default: v5.7.1
-
-Conditions:
-  WithGitHub: !Not [!Equals [!Ref GitHubRepo, ""]]
 
 Resources:
   # ------------------------------------------------------------------ storage
@@ -209,31 +200,14 @@ Resources:
       InstanceId: !Ref Instance
 
   # ------------------------------------------------------------------ GitHub Actions
-  # GitHub proves which repository and branch a workflow runs for with a short-lived token;
-  # AWS exchanges it for this role. No AWS keys are stored in GitHub.
-  GitHubOidcProvider:
-    Type: AWS::IAM::OIDCProvider
-    Condition: WithGitHub
+  # The user the deploy workflow logs in as. Its access key is not created here (it would
+  # show up in the stack): create it by hand and store it as GitHub secrets, see the README.
+  # A role GitHub assumes without a stored key (OIDC) would be better, but accounts on the
+  # AWS Free plan may not create the identity provider that needs.
+  GitHubDeployUser:
+    Type: AWS::IAM::User
     Properties:
-      Url: https://token.actions.githubusercontent.com
-      ClientIdList: [sts.amazonaws.com]
-
-  GitHubDeployRole:
-    Type: AWS::IAM::Role
-    Condition: WithGitHub
-    Properties:
-      RoleName: !Sub "${AWS::StackName}-github-deploy" # fixed: .github/workflows/deploy.yml names it
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal: { Federated: !Ref GitHubOidcProvider }
-            Action: sts:AssumeRoleWithWebIdentity
-            Condition:
-              StringEquals:
-                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
-                # only workflows running for the main branch of this one repository
-                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubRepo}:ref:refs/heads/main"
+      UserName: !Sub "${AWS::StackName}-github-deploy"
       Policies:
         - PolicyName: deploy
           PolicyDocument:

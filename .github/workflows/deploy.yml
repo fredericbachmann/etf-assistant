@@ -13,11 +13,6 @@ on:
 
 concurrency: deploy # one at a time; a second one waits
 
-env:
-  AWS_REGION: eu-north-1
-  # created by deploy/aws/stack.yaml; AWS lets only this repository's main branch use it
-  DEPLOY_ROLE: arn:aws:iam::379959319583:role/etf-assistant-github-deploy
-
 jobs:
   test:
     uses: ./.github/workflows/ci.yml
@@ -25,15 +20,13 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-24.04-arm # the server is ARM: build its images natively
-    permissions:
-      id-token: write # to log in to AWS without stored keys (OIDC)
-      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.commit }}
       - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.DEPLOY_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
+        with: # the key of the etf-assistant-github-deploy user (deploy/aws/stack.yaml)
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
       - run: deploy/deploy.sh
