@@ -4,7 +4,7 @@ Credentials: anthropic.Anthropic() finds them itself. Locally that's the
 `ant auth login` profile; on a server it will be the platform's mechanism.
 The code never reads an API key, so it doesn't change between the two.
 
-Budget: every call goes through call(). Before sending, it reserves the call's
+Budget: every call goes through call() or StreamedCall. Before sending, it reserves the call's
 WORST-CASE cost (prompt size estimated generously from its characters, plus
 the full max_tokens of output, at cache-write prices). If that reservation
 doesn't fit under the cap, the call is never made. After the response, the
@@ -111,3 +111,36 @@ def call(budget: "Budget | None" = None, *, parse: bool = False, **params):
             # if the call failed, nothing was billed for it... except it may have been: keep the
             # reservation as spent when we can't know (no response), to stay on the safe side
             budget.settle(reserved, cost if response is not None else reserved)
+
+
+class StreamedCall:
+    """messages.stream within the budget: iterate it for the text as the model writes it.
+
+    Same budget rules as call(): the worst case is reserved before sending, and replaced
+    by the real cost once the stream completes. A stream that fails or is abandoned midway
+    (the consumer stops iterating) keeps the full reservation as spent.
+
+        streamed = StreamedCall(budget, model=..., messages=...)
+        for text in streamed:
+            ...
+        streamed.response, streamed.cost   # set once iteration has finished
+    """
+
+    def __init__(self, budget: "Budget | None" = None, **params):
+        self.budget = budget
+        self.params = params
+        self.response = None
+        self.cost = 0.0
+
+    def __iter__(self):
+        reserved = worst_case_cost(self.params) if self.budget else 0.0
+        if self.budget:
+            self.budget.reserve(reserved)
+        try:
+            with client().messages.stream(**self.params) as stream:
+                yield from stream.text_stream
+                self.response = stream.get_final_message()
+            self.cost = cost_of(self.response.usage)
+        finally:
+            if self.budget:
+                self.budget.settle(reserved, self.cost if self.response is not None else reserved)
