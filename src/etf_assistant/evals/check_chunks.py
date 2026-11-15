@@ -11,17 +11,10 @@ Usage:
   uv run check-chunks       # after `uv run ingest`
 """
 
-import re
-
 from etf_assistant.corpus.chunking import Chunk
-from etf_assistant.evals.fund_facts import FundFacts, Sourced
-from etf_assistant.evals.textmatch import norm, plain
-from etf_assistant.paths import FACTS
+from etf_assistant.evals.fund_facts import FundFacts, Sourced, load_verified_facts
+from etf_assistant.evals.textmatch import norm, plain, squash
 from etf_assistant.pipeline import load_chunks
-
-
-def nospace(s: str) -> str:
-    return re.sub(r"\s", "", s)
 
 
 def fact_coverage(chunks: list[Chunk]) -> tuple[int, list[str]]:
@@ -29,8 +22,7 @@ def fact_coverage(chunks: list[Chunk]) -> tuple[int, list[str]]:
     for c in chunks:
         by_page.setdefault((c.isin, c.doc_type, c.page), []).append(plain(c.text))
     total, misses = 0, []
-    for f in sorted(FACTS.glob("*.json")):
-        facts = FundFacts.model_validate_json(f.read_text())
+    for facts in load_verified_facts().values():
         for name in FundFacts.model_fields:
             s = getattr(facts, name)
             if not isinstance(s, Sourced) or not s.quote:
@@ -40,7 +32,7 @@ def fact_coverage(chunks: list[Chunk]) -> tuple[int, list[str]]:
             q = norm(s.quote)
             if any(q in t for t in texts):
                 continue
-            if any(nospace(q) in nospace(t) for t in texts):
+            if any(squash(q) in squash(t) for t in texts):
                 # the parser lost/added spaces or cut a word at a table cell: "hold|ing period"
                 why = "damaged (spacing / cell break)"
             elif q in " ".join(texts):

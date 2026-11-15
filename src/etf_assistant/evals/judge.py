@@ -35,6 +35,8 @@ BEHAVIORS = {
     ),
 }
 
+FEE_DRAG = "fees paid per fund in currency; accept each figure within 10% and the comparison must be right"
+
 OPS = {
     "argmin": "the fund(s) with the LOWEST value; if several funds tie, all of them must be named",
     "argmax": "the fund(s) with the HIGHEST value; if several funds tie, all of them must be named",
@@ -42,8 +44,8 @@ OPS = {
     "equal": "whether the funds' values are equal (true/false)",
     "sort_asc": "the funds ordered from lowest to highest value; ties may appear in any order",
     "filter_equals": "exactly the funds whose value equals the given value; none missing, none extra",
-    "fee_drag_lump": "fees paid per fund in currency; accept each figure within 10% and the comparison must be right",
-    "fee_drag_monthly": "fees paid per fund in currency; accept each figure within 10% and the comparison must be right",
+    "fee_drag_lump": FEE_DRAG,
+    "fee_drag_monthly": FEE_DRAG,
 }
 
 INSTRUCTIONS = """You grade answers of an assistant that answers questions about ETFs from their KIDs and \
@@ -82,7 +84,7 @@ def describe_expectation(q: dict, names: dict[str, str]) -> str:
                      "null means the documents don't state it.")
     elif e["type"] == "compute":
         lines.append(f"Field: {e['field']}. The answer must give {OPS[e['op']]}.")
-        lines.append("Funds considered: " + "; ".join(fund(i) for i in (q.get("_isins") or [])))
+        lines.append("Funds considered: " + "; ".join(fund(i) for i in q["funds_in_scope"]))
         if isinstance(v, dict) and "funds" in v:
             lines.append(f"Correct result: {', '.join(fund(i) for i in v['funds'])} with value {v['value']}")
         elif isinstance(v, dict):

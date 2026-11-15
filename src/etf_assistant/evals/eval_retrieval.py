@@ -51,9 +51,12 @@ from datetime import datetime
 
 import yaml
 
-from etf_assistant.evals.fund_facts import FundFacts, Sourced
+from etf_assistant.evals.check_chunks import fact_coverage
+from etf_assistant.evals.check_golden import GOLDEN
+from etf_assistant.evals.fund_facts import FundFacts, Sourced, load_verified_facts
 from etf_assistant.evals.textmatch import squash
-from etf_assistant.paths import EVALS, FACTS
+from etf_assistant.paths import EVALS
+from etf_assistant.pipeline import load_chunks
 from etf_assistant.retrieval.embeddings import MODEL_NAME
 from etf_assistant.retrieval.store import Hit, search
 
@@ -98,10 +101,6 @@ class Result:
     top_ids: list[str] = field(default_factory=list)
 
 
-def load_facts() -> dict[str, FundFacts]:
-    return {f.stem: FundFacts.model_validate_json(f.read_text()) for f in sorted(FACTS.glob("*.json"))}
-
-
 def evidence(facts: FundFacts, name: str) -> str | None:
     s = getattr(facts, name)
     if not isinstance(s, Sourced) or not s.quote:
@@ -112,11 +111,11 @@ def evidence(facts: FundFacts, name: str) -> str | None:
 
 
 def build_queries(facts: dict[str, FundFacts]) -> list[Query]:
-    spec = yaml.safe_load((EVALS / "golden_v1.yaml").read_text(encoding="utf-8"))
+    spec = yaml.safe_load(GOLDEN.read_text(encoding="utf-8"))
     queries = []
     for q in spec["questions"]:
         e = q["expected"]
-        if e["type"] != "fact":
+        if e["type"] != "fact" or e["isin"] not in facts:
             continue
         fields = e["field"] if isinstance(e["field"], list) else [e["field"]]
         quotes = {f: evidence(facts[e["isin"]], f) for f in fields}
@@ -124,6 +123,8 @@ def build_queries(facts: dict[str, FundFacts]) -> list[Query]:
             queries.append(Query(q["id"], "golden", q["question"], e["isin"], quotes))
 
     for isin, fund in spec["funds"].items():
+        if isin not in facts:
+            continue
         for name, template in TEMPLATES.items():
             if quote := evidence(facts[isin], name):
                 queries.append(Query(f"t_{isin}_{name}", "templated",
@@ -184,16 +185,20 @@ def main() -> None:
     ap.add_argument("--show-misses", action="store_true")
     args = ap.parse_args()
 
-    queries = build_queries(load_facts())
+    queries = build_queries(load_verified_facts())
     sets = {s: [q for q in queries if q.set == s] for s in ("golden", "templated", "per_fund")}
     print(f"embedding model: {MODEL_NAME}")
-    print("queries: " + ", ".join(f"{s} {len(qs)}" for s, qs in sets.items()) + "\n")
+    print("queries: " + ", ".join(f"{s} {len(qs)}" for s, qs in sets.items()))
+    total, chunk_misses = fact_coverage(load_chunks())
+    print(f"ceiling: {total - len(chunk_misses)}/{total} quotes intact in one chunk on the cited page "
+          "(`uv run check-chunks` lists the rest)\n")
 
     cols = [f"R@{k}" for k in K_VALUES] + ["MRR"]
     print(f"{'config':14}" + "".join(f"| {s} ({len(qs)})".ljust(36) for s, qs in sets.items()))
     print(f"{'':14}" + ("| " + " ".join(f"{c:>6}" for c in cols) + "  ") * len(sets))
 
-    report = {"run_at": datetime.now().isoformat(timespec="seconds"), "embedding_model": MODEL_NAME, "configs": {}}
+    report = {"run_at": datetime.now().isoformat(timespec="seconds"), "embedding_model": MODEL_NAME,
+              "chunk_ceiling": {"intact": total - len(chunk_misses), "quotes": total}, "configs": {}}
     misses = {}
     t = time.time()
     for isin_filter in (False, True):

@@ -18,9 +18,12 @@ Workflow:
 """
 
 from datetime import date
+from pathlib import Path
 from typing import Generic, Literal, Optional, TypeVar
 
 from pydantic import BaseModel, Field
+
+from etf_assistant.paths import FACTS
 
 T = TypeVar("T")
 
@@ -64,6 +67,17 @@ class FundFacts(BaseModel):
 
     verified: bool = False
     notes: str = ""
+
+
+def load_verified_facts(facts_dir: Path = FACTS) -> dict[str, FundFacts]:
+    """ISIN -> facts, for verified files only: the answer key every eval grades against.
+
+    Unverified files are skipped, so a fund whose facts aren't checked yet is
+    simply missing (check-golden reports questions that need it). check-facts
+    is the one reader of unverified files: it exists to help verify them.
+    """
+    facts = (FundFacts.model_validate_json(f.read_text(encoding="utf-8")) for f in sorted(facts_dir.glob("*.json")))
+    return {f.isin: f for f in facts if f.verified}
 
 
 if __name__ == "__main__":

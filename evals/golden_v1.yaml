@@ -11,12 +11,19 @@
 #   behavior -> what the assistant must DO: answer | decline_advice | not_in_docs
 # All types are graded by the LLM judge (src/etf_assistant/evals/judge.py), which gets
 # the exact expected result resolved from the facts files.
+# compute ops fee_drag_lump / fee_drag_monthly assume zero market return; the
+# formulas are in check_golden.py (Resolver.compute).
+#
+# funds: name (used in generated and templated questions) and group (for
+# isins: group:<name>). Tickers and nicknames live in data/catalog.json, which the
+# assistant uses; they are not repeated here.
 #
 # tags:
 #   alias       -> fund referred to by ticker/nickname (tests entity resolution)
 #   snapshot    -> value only valid for the factsheet as-of date
 #   trap        -> a naive answer is wrong
-#   consistency -> run this question N times and measure agreement
+#   consistency -> varies between runs: measure with
+#                  `uv run eval-e2e --tag consistency --repeat N`
 #   over_refusal-> sounds like advice but is factual: the bot must answer
 
 version: 1
@@ -25,74 +32,58 @@ funds:
     IE00B4L5Y983:
         {
             name: iShares Core MSCI World UCITS ETF (Acc),
-            aliases: [EUNL, IWDA, SWDA, 'the iShares MSCI World'],
             group: world_equity,
         }
     IE00BJ0KDQ92:
         {
             name: Xtrackers MSCI World UCITS ETF 1C,
-            aliases: [XDWD, 'the Xtrackers MSCI World'],
             group: world_equity,
         }
     IE00B441G979:
         {
             name: iShares MSCI World EUR Hedged UCITS ETF (Acc),
-            aliases: [IWDE, 'the hedged MSCI World'],
             group: world_equity,
         }
     IE00B3RBWM25:
         {
             name: Vanguard FTSE All-World UCITS ETF (USD) Distributing,
-            aliases: [VWRL, VGWL],
             group: world_equity,
         }
     IE00BK5BQT80:
         {
             name: Vanguard FTSE All-World UCITS ETF (USD) Accumulating,
-            aliases: [VWCE, VWRP],
             group: world_equity,
         }
     IE00B5BMR087:
         {
             name: iShares Core S&P 500 UCITS ETF USD (Acc),
-            aliases: [SXR8, CSP1],
             group: us_equity,
         }
     IE00B3YCGJ38:
         {
             name: Invesco S&P 500 UCITS ETF Acc,
-            aliases: [P500, SPXS, 'the Invesco one'],
             group: us_equity,
         }
     IE00BKM4GZ66:
         {
             name: iShares Core MSCI EM IMI UCITS ETF (Acc),
-            aliases: [EIMI, IS3N],
             group: em_equity,
         }
     IE00BF4RFH31:
         {
             name: iShares MSCI World Small Cap UCITS ETF,
-            aliases: [WSML],
             group: small_cap,
         }
     IE00B8GKDB10:
         {
             name: Vanguard FTSE All-World High Dividend Yield UCITS ETF Distributing,
-            aliases: [VHYL],
             group: dividend,
         }
     IE00B4WXJJ64:
         {
             name: iShares Core € Govt Bond UCITS ETF (Dist),
-            aliases: [IEGA, SEGA],
             group: bonds,
         }
-
-fee_drag_assumptions: >
-    Zero market return. Lump sum: cost = A * (1 - (1 - c)^years).
-    Monthly plan: contribute C at the start of each month, then deduct c/12.
-    cost = total contributed - final balance. c = TER (+ swap fee where stated).
 
 questions:
     # ---------------------------------------------------------------- facts (20)
@@ -280,7 +271,7 @@ questions:
                   field: [ter_pct, swap_fee_pct],
                   isins: [IE00B5BMR087, IE00B3YCGJ38],
               },
-          tags: [trap],
+          tags: [trap, consistency],
           note: 'Comparing TER alone can pick the wrong fund. A good answer names the swap fee explicitly.',
       }
     - {
@@ -319,7 +310,7 @@ questions:
                           IE00B8GKDB10,
                       ],
               },
-          tags: [trap],
+          tags: [trap, consistency],
           note: 'Ties are likely. Full marks only if all tied funds are named.',
       }
     - {
@@ -714,5 +705,4 @@ generated:
               fund_size: fund size,
               launch_date: launch date,
           }
-      when: value_is_null
       expected: { type: behavior, behavior: not_in_docs }

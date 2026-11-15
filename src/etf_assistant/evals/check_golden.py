@@ -5,38 +5,33 @@ Usage:
     uv run check-golden                                  # defaults below
     uv run check-golden evals/golden_v1.yaml data/facts/
 
-Writes evals/golden_v1.resolved.json: every question with its concrete expected
-answer filled in. The eval runner reads that file, never the YAML directly, so
-re-run this script whenever a facts file changes.
-
-Exits non-zero if anything can't be resolved (missing or unverified facts file,
-null value where a fact is expected, duplicate ids/aliases).
+resolve_golden() turns every question into one with its concrete expected
+answer filled in. eval-e2e calls it directly at start-up, so there is no file
+to keep in sync. This command is the lint step: it also writes
+evals/golden_v1.resolved.json for reading, and exits non-zero if anything
+can't be resolved (missing or unverified facts file, null value where a fact is
+expected, duplicate ids).
 """
 
 import json
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
+from etf_assistant.evals.fund_facts import load_verified_facts
 from etf_assistant.paths import EVALS, FACTS
 
+GOLDEN = EVALS / "golden_v1.yaml"
 PLACEHOLDER = re.compile(r"\{(IE[0-9A-Z]{10})\.(\w+)\}")
 
 
-def load_facts(facts_dir: Path) -> dict:
-    facts = {}
-    for f in sorted(facts_dir.glob("*.json")):
-        d = json.loads(f.read_text(encoding="utf-8"))
-        facts[d["isin"]] = d
-    return facts
-
-
 class Resolver:
-    def __init__(self, spec: dict, facts: dict):
+    def __init__(self, spec: dict, facts: dict[str, dict]):
         self.funds = spec["funds"]
-        self.facts = facts
+        self.facts = facts  # ISIN -> verified facts as JSON-like dicts (dates as ISO strings)
         self.problems: list[str] = []
 
     # --- helpers -------------------------------------------------------
@@ -46,15 +41,13 @@ class Resolver:
         if isinstance(sel, str) and sel.startswith("group:"):
             g = sel.split(":", 1)[1]
             return [i for i, f in self.funds.items() if f.get("group") == g]
-        return list(sel)
+        return list(sel or [])
 
     def raw(self, qid: str, isin: str, field: str):
         fund = self.facts.get(isin)
         if fund is None:
-            self.problems.append(f"{qid}: no facts file for {isin}")
+            self.problems.append(f"{qid}: no verified facts file for {isin}")
             return None
-        if not fund.get("verified"):
-            self.problems.append(f"{qid}: facts for {isin} not verified")
         entry = fund.get(field)
         if not isinstance(entry, dict):
             self.problems.append(f"{qid}: field '{field}' missing for {isin}")
@@ -109,6 +102,10 @@ class Resolver:
         if op == "filter_equals":
             return [i for i, v in vals.items() if v == e["value"]]
         if op in ("fee_drag_lump", "fee_drag_monthly"):
+            # Zero market return; c = TER (+ swap fee where stated).
+            # Lump sum A: cost = A * (1 - (1 - c)^years).
+            # Monthly plan: contribute C at the start of each month, then deduct c/12;
+            # cost = total contributed - final balance.
             out = {}
             for i, c in vals.items():
                 if c is None:
@@ -136,6 +133,7 @@ class Resolver:
         return PLACEHOLDER.sub(sub, text)
 
     def generated(self, gen: dict) -> list[dict]:
+        """One question per (fund, field) whose value is null in the verified facts."""
         out = []
         for isin, fund in self.funds.items():
             facts = self.facts.get(isin, {})
@@ -152,23 +150,22 @@ class Resolver:
         return out
 
 
-def main() -> None:
-    if len(sys.argv) not in (1, 3):
-        sys.exit(__doc__)
-    spec_path, facts_dir = (Path(a) for a in sys.argv[1:]) if len(sys.argv) == 3 else (EVALS / "golden_v1.yaml", FACTS)
-    spec = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
-    r = Resolver(spec, load_facts(facts_dir))
+@dataclass
+class Golden:
+    version: int
+    funds: dict[str, dict]  # ISIN -> {name, group}
+    questions: list[dict]  # each with expected_value and funds_in_scope (ISINs) added
+    problems: list[str]
 
-    # structural checks
+
+def resolve_golden(spec_path: Path = GOLDEN, facts_dir: Path = FACTS) -> Golden:
+    spec = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
+    facts = {i: f.model_dump(mode="json") for i, f in load_verified_facts(facts_dir).items()}
+    r = Resolver(spec, facts)
+
     ids = [q["id"] for q in spec["questions"]]
-    for d in {i for i in ids if ids.count(i) > 1}:
+    for d in sorted({i for i in ids if ids.count(i) > 1}):
         r.problems.append(f"duplicate id {d}")
-    seen = {}
-    for isin, f in spec["funds"].items():
-        for a in f.get("aliases", []):
-            if a.lower() in seen:
-                r.problems.append(f"alias '{a}' used by {seen[a.lower()]} and {isin}")
-            seen[a.lower()] = isin
 
     questions = list(spec["questions"])
     for gen in spec.get("generated", []):
@@ -178,20 +175,29 @@ def main() -> None:
     for q in questions:
         q = dict(q)
         q["expected_value"] = r.resolve(q)
+        q["funds_in_scope"] = r.isins(q["expected"].get("isins"))  # "all" / "group:x" spelled out for the judge
         resolved.append(q)
+    return Golden(spec["version"], spec["funds"], resolved, list(dict.fromkeys(r.problems)))
+
+
+def main() -> None:
+    if len(sys.argv) not in (1, 3):
+        sys.exit(__doc__)
+    spec_path, facts_dir = (Path(a) for a in sys.argv[1:]) if len(sys.argv) == 3 else (GOLDEN, FACTS)
+    g = resolve_golden(spec_path, facts_dir)
 
     out = spec_path.with_suffix(".resolved.json")
-    out.write_text(json.dumps({"version": spec["version"], "funds": spec["funds"], "questions": resolved},
+    out.write_text(json.dumps({"version": g.version, "funds": g.funds, "questions": g.questions},
                               indent=2, default=str, ensure_ascii=False), encoding="utf-8")
 
     by_cat: dict[str, int] = {}
-    for q in resolved:
+    for q in g.questions:
         by_cat[q["category"]] = by_cat.get(q["category"], 0) + 1
-    print("questions:", len(resolved), by_cat)
+    print("questions:", len(g.questions), by_cat)
     print("wrote", out)
-    if r.problems:
-        print(f"\n{len(r.problems)} problem(s):")
-        for p in dict.fromkeys(r.problems):
+    if g.problems:
+        print(f"\n{len(g.problems)} problem(s):")
+        for p in g.problems:
             print("  -", p)
         sys.exit(1)
     print("all expected answers resolved")

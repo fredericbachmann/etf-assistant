@@ -41,8 +41,11 @@ The PDFs are not in git. Download them from the `source_url` column of
 ```bash
 uv run check-facts               # check every citation in the facts files against the PDFs
 uv run check-facts IE00B4L5Y983  # same for one fund, plus a hand-verification checklist
-uv run check-golden              # resolve expected answers -> evals/golden_v1.resolved.json
+uv run check-golden              # resolve expected answers and list problems (also writes evals/golden_v1.resolved.json to read)
 ```
+
+Evals read only facts files marked `"verified": true`. `eval-e2e` resolves the
+expected answers itself at start-up, so there is no generated file to keep in sync.
 
 ## RAG pipeline
 
@@ -78,10 +81,11 @@ The system prompt contains the fund library (ISIN, name, share class, tickers fr
 ## Evaluation
 
 ```bash
-uv run eval-retrieval                 # Recall@k / MRR for BM25, vector, hybrid (with and without ISIN filter)
+uv run eval-retrieval                 # Recall@k / MRR for BM25, vector, hybrid (with and without ISIN filter), plus the check-chunks ceiling
 uv run eval-retrieval --show-misses   # plus the golden questions whose evidence isn't in the top 5
 uv run eval-e2e                       # all golden questions through the agent, graded by an LLM judge (cap $0.50)
 uv run eval-e2e --only f01,c03 --max-cost 0.05
+uv run eval-e2e --tag consistency --repeat 5 --max-cost 0.30   # pass rate per question over 5 runs: which ones are flaky
 uv run eval-e2e --rejudge evals/results/e2e_<time>.json   # grade saved answers again after changing the judge
 ```
 
