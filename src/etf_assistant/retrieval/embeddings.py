@@ -76,7 +76,8 @@ def embed_passages(texts: list[str]) -> list[list[float]]:
     keys = [hashlib.sha1(t.encode()).hexdigest() for t in texts]
     todo = [(k, t) for k, t in dict(zip(keys, texts)).items() if k not in cached]
     if todo:
-        vectors = _model().passage_embed([t for _, t in todo])
+        # small batches: at the default 256, 512-token passages need over 1 GB of memory
+        vectors = _model().passage_embed([t for _, t in todo], batch_size=32)
         cached.update({k: v.tolist() for (k, _), v in zip(todo, vectors)})
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(cached))

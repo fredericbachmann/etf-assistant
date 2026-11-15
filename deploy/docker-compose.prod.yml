@@ -1,0 +1,69 @@
+# Production: everything on one EC2 instance, in /opt/etf-assistant next to data/ and .env.
+# deploy/remote.sh runs it with REGISTRY, IMAGE_TAG and DOMAIN set.
+#   docker compose up -d                      start or update
+#   docker compose run --rm indexer           (re)build the search index from data/chunks.jsonl
+name: etf-prod # not etf-assistant: that's the dev compose project, with its own OpenSearch volume
+
+x-app: &app
+  image: ${REGISTRY}/etf-assistant/app:${IMAGE_TAG}
+  environment:
+    OPENSEARCH_URL: http://opensearch:9200
+  depends_on:
+    opensearch:
+      condition: service_healthy
+
+services:
+  opensearch:
+    image: ${REGISTRY}/etf-assistant/opensearch:${IMAGE_TAG}
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true # the plugin is removed from the image; no port is published
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    mem_limit: 1280m # heap 512 MB + JVM overhead: about 870 MB in use after indexing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      retries: 60
+
+  app:
+    <<: *app
+    env_file: .env # ANTHROPIC_API_KEY, APP_PASSWORD, DAILY_BUDGET_USD: written by remote.sh from Parameter Store
+    volumes:
+      - ./data:/app/data:ro
+    mem_limit: 768m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"]
+      interval: 10s
+      start_period: 30s
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80" # Let's Encrypt's HTTP challenge, and redirect to HTTPS
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # certificates: keep them, Let's Encrypt limits how often they're issued
+      - caddy-config:/config
+    mem_limit: 128m
+    restart: unless-stopped
+
+  indexer: # a one-off job, not started by `up`
+    <<: *app
+    profiles: [tools]
+    command: ["index"]
+    volumes:
+      - ./data:/app/data # writable: index caches embeddings in data/embedding_cache
+
+volumes:
+  opensearch-data:
+  caddy-data:
+  caddy-config:

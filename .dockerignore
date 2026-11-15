@@ -1,0 +1,8 @@
+# Only pyproject.toml, uv.lock, README.md, manifest.csv and src/ go into the image.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!manifest.csv
+!src/
+**/__pycache__

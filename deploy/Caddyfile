@@ -1,0 +1,5 @@
+# HTTPS with an automatic Let's Encrypt certificate for $DOMAIN (the DuckDNS name).
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:7860
+}
