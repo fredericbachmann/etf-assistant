@@ -13,6 +13,9 @@ dependencies = [
     "opensearch-py>=3.2.0",  # OpenSearch client
     "pyyaml>=6.0",       # golden test set is YAML
     "anthropic>=2.8.0",
+    "gradio>=6.32.0",
+    "fastapi>=0.163.0",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
@@ -25,6 +28,7 @@ search = "etf_assistant.retrieval.store:search_cli"
 # the assistant
 ask = "etf_assistant.agent.cli:ask_cli"
 chat = "etf_assistant.agent.cli:chat_cli"
+web = "etf_assistant.web.app:main"
 # evaluation
 check-facts = "etf_assistant.evals.check_facts:cli"
 check-golden = "etf_assistant.evals.check_golden:main"

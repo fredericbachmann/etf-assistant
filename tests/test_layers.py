@@ -13,13 +13,14 @@ PKG = Path(__file__).resolve().parents[1] / "src" / "etf_assistant"
 
 # layer -> layers it must NOT import
 FORBIDDEN = {
-    "paths": {"corpus", "retrieval", "pipeline", "agent", "evals"},
-    "llm": {"corpus", "retrieval", "pipeline", "agent", "evals"},
-    "corpus": {"retrieval", "pipeline", "agent", "evals"},
-    "retrieval": {"pipeline", "agent", "evals"},
-    "pipeline": {"agent", "evals"},
-    "agent": {"pipeline", "evals"},
-    "evals": set(),
+    "paths": {"corpus", "retrieval", "pipeline", "agent", "web", "evals"},
+    "llm": {"corpus", "retrieval", "pipeline", "agent", "web", "evals"},
+    "corpus": {"retrieval", "pipeline", "agent", "web", "evals"},
+    "retrieval": {"pipeline", "agent", "web", "evals"},
+    "pipeline": {"agent", "web", "evals"},
+    "agent": {"pipeline", "web", "evals"},
+    "web": {"pipeline", "evals"},
+    "evals": {"web"},
 }
 
 

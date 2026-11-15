@@ -13,6 +13,7 @@ src/etf_assistant/
   retrieval/         embeddings and the OpenSearch index (BM25, vector, hybrid)
   pipeline.py        data setup: ingest (PDFs -> chunks) and index (chunks -> OpenSearch)
   agent/             the assistant: system prompt, tools, agentic loop, CLI
+  web/               the chat page: FastAPI + Gradio over the agent, citations linked to PDF pages
   evals/             answer key schema and checks, golden set, retrieval and end-to-end evals
 tests/               offline tests, including the layering rule below
 ```
@@ -77,6 +78,29 @@ The system prompt contains the fund library (ISIN, name, share class, tickers fr
 | `read_fund_documents` | Full text of one fund's KID and/or factsheet, with page markers: questions about one or two funds |
 | `search_documents` | Hybrid search. With `isins`: the top passages *per fund*, to compare one detail across funds. Without: top passages across the library, for topics |
 | `calculate_fee_cost` | Exact fee amounts over time, so the model never does compounding in its head |
+
+`Agent.stream()` yields the answer as it is written, plus an event when each tool
+call starts and finishes; `Agent.ask()` returns just the final answer.
+
+## Web app
+
+```bash
+uv run web                     # http://127.0.0.1:7860 (needs OpenSearch, like the CLI)
+```
+
+A chat page that streams the answer, shows each tool call while it runs, and links
+every citation to the cited page of the PDF. Settings are environment variables:
+
+| Variable | Default | |
+|---|---|---|
+| `APP_PASSWORD` | unset | Login password (user name `APP_USERNAME`, default `etf`); unset means no login, so set it on any public server |
+| `DAILY_BUDGET_USD` | `2.0` | Claude spending of all conversations together per day (UTC); then questions are refused until the next day |
+| `CONCURRENCY` | `4` | Questions answered at the same time; more wait in a queue |
+| `MAX_QUESTION_CHARS` | `1000` | Longest question accepted |
+| `HOST`, `PORT` | `127.0.0.1`, `7860` | Where the server listens; `0.0.0.0` in a container |
+
+`GET /health` returns 503 when search isn't working, for uptime checks.
+`/documents/<file>` serves only the PDFs listed in `manifest.csv`, never the rest of `data/`.
 
 ## Evaluation
 
