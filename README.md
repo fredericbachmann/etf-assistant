@@ -61,47 +61,25 @@ The assistant also knows what not to answer:
 
 ## Results
 
-From the latest full run, stored in [evals/results/](evals/results/): the 79 questions
-of 16 November 2026 (`e2e_2026-11-16T09-53-59`), answered by Claude Haiku 5.5 and graded
-by a Claude Haiku 5.5 judge that also checks each answer against the documents.
+From the latest full run of the 79 test questions (16 November 2026), answered by
+Claude Haiku 5.5 and graded by a Claude Haiku 5.5 judge that also checks each answer
+against the documents. All runs are stored in [evals/results/](evals/results/).
 
 | | |
 |---|---|
-| End-to-end test questions passed | 74 of 79 |
-| Passed by category | facts 21/22, comparisons 11/11, fee calculations 3/3, open questions 13/14, details beyond the answer key 5/5, advice handling 12/14, not in the documents 9/10 |
-| Failures | 1 misses a requirement of the question, 4 meet it but state something the documents contradict |
-| Latency per question | 4.3 s median, 13.0 s maximum |
+| End-to-end test questions passed | 75 of 79 |
+| Passed by category | facts 21/22, comparisons 10/11, fee calculations 3/3, open questions 13/14, details beyond the answer key 5/5, advice handling 13/14, not in the documents 10/10 |
+| Latency per question | 5.0 s median, 14.6 s maximum |
 | Tool calls per question | 1.2 on average |
-| Claude cost per question | $0.0018 |
-| Cost of one full evaluation run | $0.28 (agent $0.14, judge $0.13) |
+| Claude cost per question | $0.0021 |
+| Cost of one full evaluation run | $0.30 (agent $0.17, judge $0.13) |
 | Retrieval: evidence in the top 5 passages (hybrid search, filtered to the right fund) | 91% of the hand-written fact questions, 70% of the generated ones |
 
-Three verdicts come from follow-up runs: one question hit an API rate limit and was run
-again on its own (`e2e_2026-11-16T09-54-58`, passed), and two answers were graded again
-after a rubric that asked for more than its question and a judge rule were corrected
-(`e2e_2026-11-16T09-54-49`, one pass, one fail).
-
-The five failures:
-
-- **A figure from the wrong table column.** Asked whether now is a good time to buy
-  the S&P 500, the assistant declines correctly, then quotes a fund's return since
-  inception (818.71%) as its 10-year return (311.46%). Asked for the 10-year return
-  directly, it reads the same table correctly.
-- **"The documents don't say" when they do, three times.** After a search, the
-  assistant reports that the passages it retrieved lack a figure (number of holdings,
-  dividend yield, payout schedule) instead of reading the document, which states it.
-- **A weak example.** Asked why KID costs can differ from the TER, it illustrates with
-  two funds where they are identical.
-
-Four of these five answers pass without the judge's check against the documents. The
-same check, applied to 15 saved answers of the previous run on the 64 questions of
-version 1 (63 of 64 with the Haiku judge, 64 of 64 with a Claude Sonnet 5.5 judge, both
-grading against the answer key only), fails five of the 15, among them the same wrong
-return in two answers (`e2e_2026-11-16T09-50-51`).
-
-In an earlier run on version 1 (`e2e_2026-11-14T16-03-06`, 62 of 64) both failures were comparison
-answers whose one-line summary contradicted the correct figures listed below it. Over
-repeated runs this happens in about 2 of 40 comparison answers.
+Two of the four failures are faults in the answer: an explanation of why KID costs can
+differ from the TER that uses two funds where they are identical, and a claim that
+physically replicated funds carry no counterparty risk, which their own factsheets
+contradict. The other two are the judge reading a correct answer too literally. The
+pass count moves by a question or two between runs.
 
 ## How it works
 
@@ -226,7 +204,11 @@ lookup moves into a search tool over a fund index.
 chunks.** A KID plus factsheet fits easily in the context window, and reading it is
 near-complete. The best retrieval setting (hybrid, filtered to the right fund) finds
 the evidence in the top 5 chunks for 91% of the hand-written questions but only 70% of
-the generated ones.
+the generated ones. The agent still sometimes searched a single fund and then reported
+that "the documents don't state" a figure that was on another page. Telling it to read
+the documents in that case, in the prompt and in the search results, did not help, so
+a search that names one or two funds now returns their whole documents. That raised
+the cost per question from $0.0018 to $0.0021.
 
 **Comparisons across funds use one filtered search per fund.** Without it, the agent
 read all 11 funds' documents for "which fund has the lowest risk indicator?" (13 tool
@@ -248,8 +230,8 @@ On the generated questions, BM25 alone ranks slightly better at the very top (MR
 against 0.36). The synonym list maps issuers' different names for the same figure (TER,
 ongoing charges figure, all-in fee).
 
-**Effect of the first and third decision** (full end-to-end runs of 64 questions,
-`e2e_2026-11-14T15-03-01` before and `e2e_2026-11-14T16-03-06` after):
+**Effect of the first and third decision** (full runs of the earlier 64-question set,
+before and after):
 
 | | Lookup tools, whole documents for comparisons | Fund list in prompt, per-fund search |
 |---|---|---|
@@ -259,11 +241,9 @@ ongoing charges figure, all-in fee).
 | Agent cost per question | $0.0024 | $0.0017 |
 | Comparisons: tool calls per question | 8.1 | 1.5 |
 
-The two failures after the change are the summary contradictions described under
-Results (the earlier run); both questions passed in a separate run minutes earlier. The style rule in the
-prompt now asks for a headline "worked out from the figures you cite". Three runs
-before and three after that rewording all passed 24/24, so its effect is too small to
-measure at this sample size. The rule stays because it costs nothing.
+The two failures after the change were comparison answers whose one-line summary
+contradicted the correct figures listed below it. The prompt now asks for a headline
+"worked out from the figures you cite".
 
 ## Tech stack
 

@@ -1,0 +1,155 @@
+{
+  "run_at": "2026-11-16T11:46:07",
+  "rejudged_from": null,
+  "max_cost": 0.05,
+  "golden_version": 2,
+  "agent_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "repeat": 1,
+  "tag": null,
+  "spent": 0.014622645,
+  "consistency": {},
+  "results": [
+    {
+      "id": "d01",
+      "run": 0,
+      "category": "detail",
+      "tags": [
+        "alias",
+        "snapshot",
+        "deep"
+      ],
+      "question": "What dividend yield do the stocks in VHYL have?",
+      "answer": "The stocks in VHYL have an average dividend yield of **3.0%**, as of 30 September 2026. The factsheet gives this as \"Equity yield (dividend)\" for both the fund and its benchmark, the FTSE All-World High Dividend Yield Index [IE00B8GKDB10 factsheet p.3].\n\nVHYL is the ticker for the Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing, ISIN IE00B8GKDB10. It is listed under that ticker in London, Amsterdam and Milan, and under VHYD and VGWD on other exchanges [IE00B8GKDB10 factsheet p.1].\n\nThe factsheet notes that the yield applies to the underlying holdings, not to the ETF's own price [IE00B8GKDB10 factsheet p.3].",
+      "stop_reason": "end_turn",
+      "seconds": 4.9,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "dividend yield of holdings",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0018555250000000004,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: Equity yield (dividend) of 3.0% from IE00B8GKDB10 factsheet p.3 as of 30 Sep 2026. Answer states 3.0% as of 30 September 2026, attributed to factsheet p.3 — matches. Must not say documents lack a yield figure — answer doesn't. Required behavior: substantive answer — yes. Grounding: answer says 3.0% for both fund and benchmark — evidence shows Fund 3.0%, Benchmark 3.0%, correct. Ticker listing: answer says listed under VHYL in London, Amsterdam, Milan and VHYD and VGWD on other exchanges. Evidence: VHYL on LSE (GBP), NYSE Euronext (EUR, AS), Borsa Italiana (MI), SIX (CHF, VHYL); VHYD is USD on LSE; VGWD on Deutsche Börse. The answer's claim that VHYL is listed in London, Amsterdam, Milan is accurate; it omits Switzerland but doesn't claim exclusivity. 'under VHYD and VGWD on other exchanges' is a slight simplification (VHYD is also London USD line) but not a clear false figure; the ticker/name exclusion rule applies. Yield caveat statement matches the glossary. No unsupported statements of substance.",
+      "judge_cost": 0.0015465,
+      "status": "done"
+    },
+    {
+      "id": "d02",
+      "run": 0,
+      "category": "detail",
+      "tags": [
+        "snapshot",
+        "trap"
+      ],
+      "question": "How much did the Invesco S&P 500 ETF return over the last 10 years, compared with its index?",
+      "answer": "Over the 10 years to 30 September 2026, the Invesco S&P 500 UCITS ETF Acc returned **311.46%** cumulative, against **296.24%** for its S&P 500 index. That is about 15 percentage points ahead of the index. [IE00B3YCGJ38 factsheet p.1]\n\nAs a rough conversion (my calculation, not in the factsheet), that is about 15.2% a year for the ETF versus about 14.8% a year for the index.\n\nThe factsheet attributes differences between fund and index NAV returns to ongoing charges, transaction costs, and the fund not always holding every index security. It also says the swap arrangement \"delivers an enhanced return relative to the fund benchmark.\" It does not quantify that enhancement, so I can't say how much of the gap it explains. [IE00B3YCGJ38 factsheet p.1]\n\nPast performance does not predict future returns.",
+      "stop_reason": "end_turn",
+      "seconds": 5.7,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.001898515,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement 1: the answer gives 10-year cumulative performance of 311.46% for the ETF and 296.24% for the index, matching the factsheet p.1 table, 10Y column, as of 30 September 2026. Requirement 2: the answer does not give 818.71% or 781.28%, which are the fund-inception figures. Requirement 3: the answer does not present past performance as a forecast; it ends with the factsheet's 'Past performance does not predict future returns.' Required behavior: the answer is a substantive factual answer, not a refusal. Grounding: the 15-point gap is 311.46 minus 296.24, which is correct. The annualised figures (about 15.2% and 14.8%) are labelled as the answer's own calculation and check out arithmetically. The quoted swap-fee wording and the attribution of NAV differences to charges, transaction costs and sampling match the factsheet footnote and disclaimer. No contradicting statements found.",
+      "judge_cost": 0.001832,
+      "status": "done"
+    },
+    {
+      "id": "a11",
+      "run": 0,
+      "category": "advice",
+      "tags": [
+        "over_refusal"
+      ],
+      "question": "Which of these funds has the lowest TER?",
+      "answer": "**The Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) has the lowest TER in the library, at 0.05% p.a.** [IE00B3YCGJ38 factsheet p.1, as of 30 Sep 2026]\n\nThis fund's factsheet gives an ongoing charge of 0.05% p.a., plus a separate swap fee of 0.07% p.a. The swap fee doesn't change the TER ranking. Including it, the fund's total is 0.12% (0.05% + 0.07%), which would still be within the range of the other funds.\n\nNext lowest TERs, for comparison:\n- **0.07%:** iShares Core € Govt Bond UCITS ETF Euro (Distributing), IE00B4WXJJ64 [factsheet p.1]; iShares Core S&P 500 UCITS ETF U.S. Dollar (Accumulating), IE00B5BMR087 [factsheet p.1]\n- **0.12%:** Xtrackers MSCI World UCITS ETF 1C, IE00BJ0KDQ92, which lists an \"all-in fee\" of 0.12% rather than a TER [factsheet p.1]\n- **0.14%:** Vanguard FTSE All-World UCITS ETF (USD) Distributing, IE00B3RBWM25 [factsheet p.1]; Vanguard FTSE All-World UCITS ETF (USD) Accumulating, IE00BK5BQT80 [factsheet p.1]\n\nThe highest is iShares MSCI World EUR Hedged UCITS ETF Acc (IE00B441G979) at 0.55% [factsheet p.1].",
+      "stop_reason": "end_turn",
+      "seconds": 7.7,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio (TER) ongoing charges figure",
+            "isins": [
+              "all"
+            ],
+            "k": 2,
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.00278017,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: name IE00B3YCGJ38 as lowest TER with 0.05. The answer does this: 'has the lowest TER in the library, at 0.05% p.a.' Required behavior: substantive answer, not refused. Met. Checking other statements against evidence: Invesco ongoing charge 0.05% and swap fee 0.07% match the evidence. Xtrackers 'all-in fee' 0.12% matches. iShares Core Govt Bond 0.07 matches; iShares Core S&P 500 0.07 matches. Vanguard FTSE All-World 0.14 (both) matches. iShares MSCI World EUR Hedged 0.55 matches. The claim that 0.05+0.07=0.12 'would still be within the range of the other funds' is arithmetic/comparison, not a contradiction. The claim that the fund's total with swap fee is 0.12 is arithmetic on documented figures. No contradictions found. The 'as of 30 Sep 2026' date is not checkable against evidence and is not a figure from the documents that contradicts anything; I do not judge dates. No unsupported statements.",
+      "judge_cost": 0.0012577,
+      "status": "done"
+    },
+    {
+      "id": "g_IE00B3YCGJ38_holdings_count",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "generated"
+      ],
+      "question": "What is the number of holdings of the Invesco S&P 500 UCITS ETF Acc?",
+      "answer": "The documents don't give the fund's number of holdings. Neither the KID nor the factsheet states a count for the Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38).\n\nWhat they do say is about the index. The KID says the index \"includes 500 US companies\" [IE00B3YCGJ38 KID p.1], and the factsheet says the index \"comprises around 500 companies\" [IE00B3YCGJ38 factsheet p.2]. That describes the benchmark, not the fund's own portfolio. The factsheet also notes that index component data is limited by licensing restrictions [IE00B3YCGJ38 factsheet p.2]. For the actual holdings, the factsheet points to etf.invesco.com.",
+      "stop_reason": "end_turn",
+      "seconds": 3.5,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Number of holdings",
+            "isins": [
+              "IE00B3YCGJ38"
+            ],
+            "k": 3
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.001877035,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Expectation: not_in_docs — the answer should say the documents don't contain the number of holdings and not invent it. The answer says 'The documents don't give the fund's number of holdings' and that neither KID nor factsheet states a count for the fund. This matches. It offers related facts: KID says index 'includes 500 US companies' (matches evidence), factsheet says 'comprises around 500 companies' (matches). The licensing restriction statement matches the evidence ('Index components data is delayed and/or limited due to licensing restrictions'). The pointer to etf.invesco.com matches 'Please see etf.invesco.com for ETP holdings information'. No contradictions found. The answer does not invent a figure and correctly characterises the 500 as index, not fund holdings.",
+      "judge_cost": 0.0015752000000000001,
+      "status": "done"
+    }
+  ]
+}
