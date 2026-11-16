@@ -24,11 +24,12 @@ HEADER = """
 DISCLAIMER = ("Information only, not investment advice. Figures are as of the documents' dates. "
               "Click a citation to open the source page.")
 
+# Each shows a different skill (fact lookup, calculation, plain-language risk, comparison).
 EXAMPLES = [
-    "What's the ongoing charge of VWCE?",
-    "Which fund has the lowest TER?",
-    "Compare the risk indicators of all funds.",
-    "How much would fees cost on €10,000 over 20 years in EUNL?",
+    "How many companies does VWCE invest in?",
+    "How much would I pay in fees on €10,000 over 20 years with VWCE compared with EUNL?",
+    "Can I lose money with the government bond ETF? How did it do in 2022?",
+    "How is the High Dividend Yield ETF different from the plain Vanguard All-World ETF?",
 ]
 
 THEME = gr.themes.Base(
