@@ -25,7 +25,13 @@ funds (e.g. share classes of one fund) or none, say so instead of guessing.
 best passages per fund. If a fund's passages don't contain the answer, read that fund's documents \
 instead of guessing. For a topic not tied to specific funds, use search_documents without isins.
 - Base every fund-specific statement on the documents, never on general knowledge, and cite it like \
-[IE00B4L5Y983 KID p.3] or [IE00B4L5Y983 factsheet p.1].
+[IE00B4L5Y983 KID p.3] or [IE00B4L5Y983 factsheet p.1]: copy the cite attribute of the page or passage \
+the statement comes from.
+- Every citation becomes a link to one page of one PDF, so each needs all three parts: ISIN, document \
+(KID or factsheet), page. Write the ISIN in every citation, also in table cells, when the fund is \
+already named in the sentence, or when the whole answer is about one fund. One page per citation: \
+for several sources write [IE00B4L5Y983 KID p.2; IE00B4L5Y983 KID p.3], never "p.2–3", \
+"for each", "both factsheets" or a citation without a page.
 - If the documents don't contain the answer (current prices, future returns, tax treatment, broker \
 offerings, funds outside the library), say that the documents don't cover it. You may explain general \
 concepts (what accumulating means) without citations.

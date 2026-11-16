@@ -7,7 +7,8 @@ call and returns the result as text; errors go back to the model instead of
 being raised.
 
 Tool results are plain text with XML-style tags, not JSON. The tags carry what
-the model needs to cite: ISIN, document and page.
+the model needs to cite: ISIN, document and page, and every page and passage has a
+cite attribute with the citation written out, ready to copy.
 
 There is no tool to look up funds: the fund list is in the system prompt (prompt.py).
 """
@@ -125,14 +126,22 @@ def read_fund_documents(isin: str, doc_type: str) -> str:
             parts.append(f'<document isin="{isin}" type="{t}">not available in the library</document>')
             continue
         pages = load_pages(DATA / row["file_path"])
-        body = "\n\n".join(f"<page number=\"{n}\">\n{p}\n</page>" for n, p in enumerate(pages, 1))
+        body = "\n\n".join(f'<page number="{n}" cite="{_cite(isin, t, n)}">\n{p}\n</page>'
+                           for n, p in enumerate(pages, 1))
         parts.append(f'<document isin="{isin}" type="{t}" as_of="{row["as_of_date"]}">\n{body}\n</document>')
     return "\n\n".join(parts)
 
 
+def _cite(isin: str, doc_type: str, page: int) -> str:
+    """The citation exactly as the answer should write it, so the model copies it instead of
+    assembling it from attributes further up; assembled citations often dropped the ISIN."""
+    return f"{isin} {'KID' if doc_type == 'kid' else doc_type} p.{page}"
+
+
 def _passage(h: Hit, with_fund: bool) -> str:
     fund = f'isin="{h.isin}" fund="{h.fund_name}" ' if with_fund else ""
-    return f'<passage {fund}doc="{h.doc_type}" page="{h.page}" section="{h.section}">\n{h.text}\n</passage>'
+    return (f'<passage {fund}doc="{h.doc_type}" page="{h.page}" section="{h.section}" '
+            f'cite="{_cite(h.isin, h.doc_type, h.page)}">\n{h.text}\n</passage>')
 
 
 def search_documents(query: str, isins: list[str] | None = None, doc_type: str | None = None,
