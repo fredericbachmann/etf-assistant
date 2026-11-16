@@ -1,13 +1,14 @@
 """
-Mechanical checks for data/facts/<ISIN>.json before (and after) hand verification.
+Mechanical checks for data/facts/<ISIN>.json, run before and after hand verification.
 
-For every Sourced field that has a value it checks that:
+For every Sourced field that has a value:
   - doc and page are set, and the page exists in that document (resolved via manifest.csv)
   - the quote occurs on that page (ignoring whitespace and line breaks)
   - the value can be read from the quote (numbers, dates, enum keywords)
 
-It cannot tell you the value is *right*. It tells you the citation is real and
-consistent, so the hand pass is just: open the page, read the quote, agree or fix.
+The checks show that each citation exists and agrees with its value. They can't
+show that the value is the right one for the field. That is the hand
+verification: open the cited page, read the quote, confirm or correct the value.
 
 Usage:
   uv run check-facts                # all files

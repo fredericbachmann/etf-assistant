@@ -1,21 +1,15 @@
 """
-Text -> vector (embedding).
+Embeddings: text -> vector, for vector search.
 
-An embedding model maps a text to a fixed-length list of numbers (here 384)
-such that texts with similar MEANING get vectors pointing in similar
-directions. "What are the ongoing charges?" lands near a chunk containing
-"Management fees and other administrative or operating costs 0.20%", even
-though they share almost no words. That's what keyword search can't do.
+Models run locally through fastembed (ONNX, CPU). The default is
+BAAI/bge-small-en-v1.5 (384 dimensions, about 67 MB). MODELS lists the
+alternatives; EMBEDDING_MODEL selects one.
 
-Models run locally via fastembed (ONNX, CPU). Default: BAAI/bge-small-en-v1.5
-(~67 MB); larger ones are listed in MODELS and chosen with EMBEDDING_MODEL.
-
-Two details that matter:
-  - Max 512 tokens. Anything longer is silently cut off, so the chunker
-    measures chunks with count_tokens() from this module.
-  - Asymmetric retrieval: BGE was trained to embed short QUESTIONS with an
-    instruction prefix and long PASSAGES without one. fastembed doesn't add
-    the prefix for us, so embed_query() does.
+Constraints the rest of the code depends on:
+  - The models read at most 512 tokens (MAX_TOKENS) and silently cut off the
+    rest, so the chunker measures chunks with count_tokens().
+  - BGE models expect an instruction prefix on queries and none on passages.
+    fastembed doesn't add it, so embed_query() does.
 """
 
 import hashlib
@@ -40,7 +34,7 @@ MODELS = {
     "mixedbread-ai/mxbai-embed-large-v1": (1024, BGE_QUERY_PREFIX),  # 335M, trained with the same prompt
 }
 
-# Pick the model with an environment variable, e.g.
+# Selected with an environment variable, e.g.
 #   EMBEDDING_MODEL=BAAI/bge-base-en-v1.5 uv run index
 MODEL_NAME = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 if MODEL_NAME not in MODELS:

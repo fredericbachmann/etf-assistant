@@ -1,13 +1,12 @@
 """
-The ETF assistant: Claude + tools in an agentic loop.
+The agent: Claude with tools, in a loop.
 
-The loop, by hand so every step is visible:
-  1. send the conversation (+ tool definitions) to the model
-  2. stop_reason "tool_use": the reply contains tool calls -> run them, append
-     the results as the next user message, go to 1
-  3. stop_reason "end_turn": the reply is the answer
-The SDK's Tool Runner (client.beta.messages.tool_runner) automates exactly this;
-writing it once by hand shows what such frameworks do for you.
+Each turn sends the conversation and the tool definitions to the model:
+  stop_reason "tool_use"   the reply contains tool calls. They are run, their results are
+                           appended as the next user message, and the model is called again.
+  stop_reason "end_turn"   the reply is the answer.
+The loop is written out here; the SDK's tool runner (client.beta.messages.tool_runner)
+is not used.
 
 Agent.stream() runs the loop and yields events as they happen, for front ends that
 show the answer while it is written and the tool calls while they run:

@@ -1,20 +1,20 @@
 """
-Schema for the verified facts table: the exact answer key for the evals.
+Schema of the verified facts files (data/facts/<ISIN>.json): the answer key of the evals.
 
-The assistant never reads these files (only evals/ may; tests/test_layers.py
-checks it). If it could, the end-to-end eval would only test whether it can
-copy from the file it's graded against.
+The assistant never reads these files. Only evals/ may, and tests/test_layers.py
+checks it; otherwise the end-to-end eval would measure copying from the answer key.
 
-Every value carries where it came from (document + page + quote). That way:
-  - you can check citations automatically (check_facts.py, check_chunks.py, eval_retrieval.py)
-  - when you hand-verify, you open the exact page instead of hunting for it
+Every value records its source: document, page and a verbatim quote. The
+citations are checked automatically (check_facts.py, check_chunks.py,
+eval_retrieval.py), and hand verification starts at the cited page.
 
-Workflow:
-  1. Have an LLM fill FundFacts from the parsed text of one fund's KID + factsheet
-     (use structured output / JSON schema = FundFacts.model_json_schema()).
-  2. Save to data/facts/<ISIN>.json with verified=False.
-  3. Check every field against the PDF by hand, fix it, set verified=True.
-  4. Evals only ever read verified files.
+How a facts file is made:
+  1. An LLM fills FundFacts from the parsed text of the fund's KID and factsheet
+     (structured output with FundFacts.model_json_schema()).
+  2. The result is saved as data/facts/<ISIN>.json with verified=False.
+  3. Every field is checked against the PDF by hand and corrected; then
+     verified is set to True.
+Evals read only verified files (load_verified_facts).
 """
 
 from datetime import date
@@ -41,7 +41,8 @@ class FundFacts(BaseModel):
     issuer: Sourced[str]
     index_name: Sourced[str]
 
-    # Costs: keep the factsheet TER and the KID cost lines separate. They differ, and that's a test case.
+    # Costs. The factsheet TER and the KID cost lines are separate fields: the figures can differ,
+    # and the golden set asks about the difference.
     ter_pct: Sourced[float] = Field(description="TER / ongoing charge from the factsheet, in % p.a.")
     swap_fee_pct: Sourced[float] = Field(description="only for swap-based funds, else value=None")
     kid_ongoing_costs_pct: Sourced[float] = Field(description="KID 'management fees and other administrative or operating costs', % p.a.")

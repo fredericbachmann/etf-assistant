@@ -1,15 +1,15 @@
 """
 The fund catalog: name, share class and tickers of every fund, read from its own documents.
 
-The agent needs this to turn "VWCE" or "the iShares MSCI World" into an ISIN.
-It must not come from data/facts or evals/ (that's test data), and it must
-work for a new ETF without manual steps. Every issuer formats its documents
-differently, so instead of parsing rules an LLM reads the KID's first page and
-the whole factsheet (tickers are often listed on a later page) and fills a
-fixed schema (structured output).
+The agent uses it to turn "VWCE" or "the iShares MSCI World" into an ISIN. It
+must not come from data/facts or evals/ (the answer key), and it must work for
+a new ETF without manual steps. Issuers format their documents differently, so
+an LLM, not parsing rules, reads the KID's first page and the whole factsheet
+(tickers are often listed on a later page) and fills a fixed schema (structured
+output).
 
-LLM output isn't trusted blindly: every ticker must occur verbatim in the
-documents, otherwise it is dropped. The same idea as check_facts.py.
+The extraction is checked: a ticker that doesn't occur verbatim in the
+documents is dropped, as check_facts.py does for quotes.
 
 Usage:
   uv run build-catalog      # writes data/catalog.json (tracked in git: costs an LLM call per fund to rebuild)

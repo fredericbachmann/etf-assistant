@@ -1,19 +1,20 @@
 """
-The OpenSearch index and the three ways to search it.
+The OpenSearch index and its three search modes.
 
-Everything OpenSearch-specific lives in this file. The rest of the project
-only calls index_chunks() and search(), so the store can be swapped later
-(e.g. for something cheaper on AWS) without touching anything else.
+Everything OpenSearch-specific is in this file. The rest of the project uses
+only index_chunks(), search(), Hit and check_ready(), so the store can be
+replaced without changes elsewhere.
 
 Search modes:
-  bm25    keyword search. Scores chunks by how often the query's words occur
-          in them, weighted by how rare those words are across all chunks.
-          Strong for exact tokens: ISINs, tickers, "swap fee".
-  vector  semantic search. Embeds the query and finds the chunks whose
-          vectors are closest (k-nearest neighbours). Strong for paraphrases:
-          "how risky is it?" -> the Summary Risk Indicator section.
-  hybrid  runs both, rescales each result list to 0..1 (min-max), and averages
-          the scores. Aims for the best of both; the evals will tell.
+  bm25    keyword search over the context header and chunk text, with synonym
+          expansion of the query. Strong for exact terms: ISINs, tickers,
+          "swap fee".
+  vector  k-nearest-neighbour search over the embeddings. Strong for
+          paraphrases: "how risky is it?" finds the Summary Risk Indicator
+          section.
+  hybrid  both. Each result list is rescaled to 0..1 (min-max) and the scores
+          are averaged with HYBRID_WEIGHTS. The default mode: it has the best
+          recall in `uv run eval-retrieval`.
 
 Usage:
   uv run index                                       # (re)build the index from data/chunks.jsonl
@@ -35,7 +36,7 @@ from etf_assistant.retrieval.embeddings import DIM, MODEL_NAME, embed_passages, 
 
 INDEX = "etf-chunks"
 HYBRID_PIPELINE = "etf-hybrid"
-HYBRID_WEIGHTS = [0.5, 0.5]  # [bm25, vector]; a knob to tune with the evals
+HYBRID_WEIGHTS = [0.5, 0.5]  # [bm25, vector]
 
 Mode = Literal["bm25", "vector", "hybrid"]
 
@@ -47,10 +48,10 @@ def client() -> OpenSearch:
 
 # --------------------------------------------------------------------------- index
 
-# Issuers name the same thing differently, and users use yet other words: "TER" is
+# Issuers name the same figure differently, and users use other words again: "TER" is
 # "Total Expense Ratio" (iShares), "Ongoing Charges Figure" (Vanguard), "All-in fee"
-# (Xtrackers). BM25 only matches words that occur, so at search time each term
-# below is expanded to its whole group. Taken from the documents' own labels.
+# (Xtrackers). BM25 matches only words that occur, so at search time each term
+# below is expanded to its whole group. The terms are the documents' own labels.
 SYNONYMS = [
     "ter, total expense ratio, expense ratio, ongoing charges figure, ongoing charge, ocf, all-in fee",
     "sri, summary risk indicator, risk indicator, risk score, risk class",
@@ -62,14 +63,14 @@ SYNONYMS = [
     "replication, replicate, methodology, investment method",
 ]
 
-# Analyzers turn text into the terms BM25 matches. This rebuilds OpenSearch's
-# built-in "english" analyzer from its parts, plus the synonyms for queries.
+# OpenSearch's built-in "english" analyzer, rebuilt from its parts so that the
+# search analyzer can add the synonyms.
 ANALYSIS = {
     "filter": {
         "english_possessive_stemmer": {"type": "stemmer", "language": "possessive_english"},
         "english_stop": {"type": "stop", "stopwords": "_english_"},
         "english_stemmer": {"type": "stemmer", "language": "english"},
-        # synonym_graph handles multi-word synonyms correctly, but only at search time
+        # synonym_graph supports multi-word synonyms; it can be used only at search time
         "etf_synonyms": {"type": "synonym_graph", "synonyms": SYNONYMS},
     },
     "analyzer": {
@@ -86,21 +87,21 @@ ANALYSIS = {
     },
 }
 
-# The mapping tells OpenSearch what each field is and how to index it.
+# Index settings and field mapping.
 INDEX_BODY = {
     "settings": {
         "index": {
-            "knn": True,  # enable the k-NN (vector) plugin for this index
+            "knn": True,  # required for the knn_vector field
             "number_of_shards": 1,  # a few hundred documents: one shard, no replicas
             "number_of_replicas": 0,
         },
         "analysis": ANALYSIS,
     },
     "mappings": {
-        # metadata stored with the index: which model made the vectors (checked when searching)
+        # the model that made the vectors; check_index_model() compares it before a vector search
         "_meta": {"embedding_model": MODEL_NAME},
         "properties": {
-            # keyword = exact value, for filtering ("only IE00B4L5Y983")
+            # keyword fields hold exact values; isin and doc_type are used as filters
             "chunk_id": {"type": "keyword"},
             "isin": {"type": "keyword"},
             "doc_type": {"type": "keyword"},
@@ -109,29 +110,28 @@ INDEX_BODY = {
             "as_of_date": {"type": "date"},
             "fund_name": {"type": "keyword"},
             "section": {"type": "keyword"},
-            # the original chunk text, returned with hits; stored but not searched
+            # the chunk text returned with hits; stored but not searched
             "text": {"type": "text", "index": False},
-            # what BM25 searches: header + text. The analyzers lowercase, drop stop
-            # words and stem ("charges" -> "charg", "holding" -> "hold"); queries
-            # additionally get the synonym expansion.
+            # searched by BM25: context header + text, lowercased, without stop words,
+            # stemmed ("charges" -> "charg"); queries also get the synonym expansion
             "search_text": {"type": "text", "analyzer": "etf_index", "search_analyzer": "etf_search"},
-            # what vector search searches: the embedding of header + text
+            # searched by vector search: the embedding of context header + text
             "embedding": {
                 "type": "knn_vector",
                 "dimension": DIM,
                 "method": {
-                    "name": "hnsw",  # graph index for fast approximate nearest-neighbour search
-                    "engine": "lucene",  # supports filtering during the search (by isin, doc_type)
-                    "space_type": "cosinesimil",  # compare vector directions, not lengths
+                    "name": "hnsw",  # approximate nearest-neighbour search
+                    "engine": "lucene",  # applies the isin and doc_type filters during the search
+                    "space_type": "cosinesimil",  # cosine similarity
                 },
             },
         }
     },
 }
 
-# A search pipeline post-processes results. Hybrid search needs one: BM25 scores
-# (e.g. 3-25) and cosine scores (0-1) are on different scales, so each list is
-# rescaled to 0..1 before they're combined.
+# The search pipeline for hybrid queries. BM25 scores (e.g. 3-25) and cosine
+# scores (0-1) are on different scales, so each result list is rescaled to 0..1
+# before the two are combined.
 HYBRID_PIPELINE_BODY = {
     "description": "min-max normalise BM25 and k-NN scores, then take a weighted mean",
     "phase_results_processors": [{

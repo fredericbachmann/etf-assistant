@@ -1,33 +1,27 @@
 """
-Markdown pages -> chunks.
+Markdown pages -> chunks, the units that are embedded, indexed and retrieved.
 
-A chunk is the unit of retrieval: the search engine returns chunks, and the
-LLM only sees the chunks it gets. So a chunk should be
-  - small enough to be about ONE thing (a vector of a 10-page document means
-    "everything" and matches nothing well),
-  - big enough to be self-contained (the cost table with its heading, not
-    half a row).
-
-Rules used here:
-  1. Never cross a page: every chunk has one exact page for citations.
-  2. Split along the document's structure: blocks are paragraphs/tables
-     (separated by empty lines); a heading starts a new chunk; consecutive
-     blocks are packed into one chunk up to max_len.
+Rules:
+  1. A chunk never crosses a page, so every chunk has one page to cite.
+  2. Pages are split along their structure. Blocks are paragraphs and tables
+     (separated by empty lines). Consecutive blocks are packed into one chunk
+     up to max_len; a heading starts a new chunk once the current one has
+     reached min_len.
   3. A block longer than max_len (legal disclaimers, one long KID paragraph)
-     is split by lines (tables) or sentences (prose).
+     is split by lines (tables) or by sentences (prose).
+  4. Each chunk is embedded and indexed with a context header: fund, ISIN,
+     document, page, section (Chunk.embedding_text). The cost table on KID p.3
+     never names the fund; without the header, the cost tables of all funds
+     look the same to search.
 
-Size is measured by a `length` function. ingest.py passes the embedding
-model's token counter: the model reads at most 512 tokens, and Markdown tables
-use far more tokens per character than prose (a 1,000-character table can be
-800 tokens), so a character limit can't guarantee a chunk fits.
-  4. Each chunk gets a context header (fund, ISIN, document, page, section)
-     before it is embedded. The cost table on KID p.3 never names the fund;
-     without the header, the costs of all 11 funds look identical to search.
+Size is measured by the `length` function passed in. pipeline.py passes the
+embedding model's token counter: the model reads at most 512 tokens, and
+Markdown tables use far more tokens per character than prose (a 1,000-character
+table can be 800 tokens), so a character limit can't guarantee that a chunk fits.
 
-No overlap between chunks: overlap is a fix for blind fixed-size splitting
-that cuts sentences in half. We split at paragraph and heading boundaries,
-so there's little to repair. If the evals show facts split across chunks,
-this is the place to revisit.
+Chunks don't overlap. They end at paragraph and heading boundaries, so no
+sentence is cut in half. `uv run check-chunks` reports verified facts that are
+split across chunks.
 """
 
 import re
@@ -37,7 +31,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-# Defaults in characters, for use without a tokenizer. ingest.py uses token limits instead.
+# Defaults in characters, for use without a tokenizer. pipeline.py passes token limits instead.
 MAX_CHARS = 1500
 MIN_CHARS = 300  # a heading only starts a new chunk if the current one is at least this long
 
@@ -89,7 +83,7 @@ def split_oversized(block: str, length: Callable[[str], int], max_len: int) -> l
         else:
             cur = f"{cur}{sep}{u}" if cur else u
     pieces.append(cur)
-    # a single line/sentence can still exceed max_len; rare, and we keep it whole
+    # a single line or sentence can still exceed max_len; it is rare and kept whole
     return pieces
 
 

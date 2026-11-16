@@ -5,10 +5,10 @@ services:
     image: opensearchproject/opensearch:3.8.0
     container_name: etf-opensearch
     environment:
-      - discovery.type=single-node # one node, no cluster
+      - discovery.type=single-node
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m # JVM heap; plenty for a few hundred chunks
-      # No TLS/passwords locally. NEVER do this on a server reachable from the internet;
-      # on AWS the managed service handles authentication.
+      # No TLS or passwords: the port below is bound to this machine only.
+      # The server uses deploy/docker-compose.prod.yml, which publishes no OpenSearch port.
       - DISABLE_SECURITY_PLUGIN=true
       - DISABLE_INSTALL_DEMO_CONFIG=true
     ports:

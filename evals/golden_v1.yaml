@@ -1,6 +1,6 @@
 # Golden test set v1 for the ETF fine-print assistant.
 #
-# Expected answers are NOT written here. They are resolved from your verified
+# Expected answers are NOT written here. They are resolved from the verified
 # facts files (data/facts/<ISIN>.json) by check_golden.py, so the test set
 # can never disagree with your answer key.
 #
