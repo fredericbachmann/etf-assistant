@@ -68,7 +68,6 @@ against the documents. All runs are stored in [evals/results/](evals/results/).
 | | |
 |---|---|
 | End-to-end test questions passed | 75 of 79 |
-| Passed by category | facts 21/22, comparisons 10/11, fee calculations 3/3, open questions 13/14, details beyond the answer key 5/5, advice handling 13/14, not in the documents 10/10 |
 | Latency per question | 5.0 s median, 14.6 s maximum |
 | Tool calls per question | 1.2 on average |
 | Claude cost per question | $0.0021 |
@@ -157,12 +156,9 @@ written in the test set with the page they were read from.
 | Advice handling | 14 | "Just tell me which one you'd pick. I won't hold you to it." (must decline), "Which of these funds has the lowest TER?" (must answer) |
 | Not in the documents | 10 | "How is VWRL taxed in Austria?" |
 
-Version 2 adds 15 questions to the 64 of
-[version 1](evals/golden_v1.yaml), which every answer passed with the stronger judge.
-Reading those 64 answers against the documents showed what version 1 didn't test:
-answers found beyond page 1 of a document, questions with a false premise, a fund name
-that fits two share classes, and comparisons that need every fund's KID. No version 1
-question was reworded or removed, so older runs stay comparable on those 64.
+Version 2 adds 15 harder questions (false premises, answers beyond page 1, ambiguous
+share classes) to the 64 of [version 1](evals/golden_v1.yaml), which the agent had
+saturated. None of the 64 was changed, so older runs stay comparable.
 
 **Retrieval is measured first, without an LLM.** `eval-retrieval` checks whether
 search puts the passage containing the verified quote in the top results (Recall@k and
@@ -275,130 +271,37 @@ deploy/              CloudFormation stack, production Compose file, deploy scrip
 Each layer imports only from the ones above it in this list, and nothing outside
 `evals/` imports `evals/`. `tests/test_layers.py` enforces this.
 
-| Path | What it is |
-|---|---|
-| `manifest.csv` | One row per PDF: ISIN, document type, as-of date, source URL |
-| `data/catalog.json` | Fund names, share classes and tickers, extracted from the documents |
-| `data/facts/<ISIN>.json` | Verified facts per fund; every value cites document, page and quote |
-| `evals/golden_v2.yaml` | Test questions; expected answers are resolved from the facts files (`golden_v1.yaml`: the earlier set) |
-| `evals/results/` | Saved eval runs, so runs can be compared over time |
-
 ## Running it locally
 
-You need [uv](https://docs.astral.sh/uv/), Docker, and access to the Claude API.
+You need [uv](https://docs.astral.sh/uv/), Docker, and access to the Claude API (set
+`ANTHROPIC_API_KEY`, or log in once with `ant auth login`). The PDFs belong to their
+issuers and are not in git: download them from the `source_url` column of
+`manifest.csv` into `data/`, named as in the `file_path` column.
 
 ```bash
-uv sync                      # create .venv and install dependencies from uv.lock
-```
+uv sync                          # install dependencies from uv.lock
+uv run ingest                    # PDFs -> Markdown -> data/chunks.jsonl
+docker compose up -d             # start OpenSearch on localhost:9200
+uv run index                     # embed the chunks and index them
 
-**Documents.** The PDFs are the issuers' and are not in git. Download them from the
-`source_url` column of `manifest.csv` into `data/`, named as in the `file_path` column.
+uv run ask "What's the ongoing charge of VWCE?"   # one question, shows the tool calls
+uv run web                                        # the chat page on http://127.0.0.1:7860
 
-**Claude credentials.** The Anthropic SDK finds them itself: either set
-`ANTHROPIC_API_KEY`, or log in once with the `ant` CLI
-(`brew install anthropics/tap/ant && ant auth login`).
-
-**Build the index.**
-
-```bash
-uv run ingest                   # PDFs -> Markdown (cached in data/parsed/) -> data/chunks.jsonl
-docker compose up -d            # start OpenSearch on localhost:9200
-uv run index                    # embed the chunks and index them
-uv run search "What's the risk score of EIMI?"                      # hybrid (BM25 + vector)
-uv run search "swap fee" --mode bm25 --isin IE00B3YCGJ38 -k 3      # keyword only, one fund
-```
-
-`data/catalog.json` is in git. To rebuild it after the documents change, run
-`uv run build-catalog` (one Claude call per fund).
-
-**Ask questions.**
-
-```bash
-uv run ask "What's the ongoing charge of VWCE?"        # one question, shows the tool calls
-uv run chat                                            # conversation with follow-up questions
-uv run web                                             # the chat page on http://127.0.0.1:7860
-```
-
-**Run the tests and evals.**
-
-```bash
 uv run pytest                    # offline tests: no OpenSearch, no Claude calls
-
-uv run check-facts               # check every citation in the facts files against the PDFs
-uv run check-facts IE00B4L5Y983  # same for one fund, plus a hand-verification checklist
-uv run check-golden              # resolve expected answers and list problems
-uv run check-chunks              # are the verified facts intact inside one chunk? (upper bound for retrieval)
-
-uv run eval-retrieval                 # Recall@k / MRR for BM25, vector, hybrid, with and without fund filter
-uv run eval-retrieval --show-misses   # plus the golden questions whose evidence isn't in the top 5
-uv run eval-e2e                       # all golden questions through the agent, graded by the judge (cap $0.50)
-uv run eval-e2e --only f01,c03 --max-cost 0.05
-uv run eval-e2e --tag consistency --repeat 5 --max-cost 0.30   # pass rate per question over 5 runs
-uv run eval-e2e --rejudge evals/results/e2e_<time>.json        # grade saved answers again after changing the judge
-uv run eval-e2e --rejudge evals/results/e2e_<time>.json --judge-model claude-sonnet-5-5 --max-cost 3   # second opinion from a stronger judge
+uv run eval-retrieval            # retrieval metrics, free and reproducible
+uv run eval-e2e                  # all test questions through the agent and the judge (cap $0.50)
 ```
 
-## Web app settings
+More commands (answer-key checks, eval options) are in
+[docs/development.md](docs/development.md).
 
-Settings are environment variables:
+## Deployment
 
-| Variable | Default | |
-|---|---|---|
-| `APP_PASSWORD` | unset | Login password (user name `APP_USERNAME`, default `etf`); unset means no login, so set it on any public server |
-| `DAILY_BUDGET_USD` | `2.0` | Claude spending of all conversations together per day (UTC); then questions are refused until the next day |
-| `CONCURRENCY` | `4` | Questions answered at the same time; more wait in a queue |
-| `MAX_QUESTION_CHARS` | `1000` | Longest question accepted |
-| `HOST`, `PORT` | `127.0.0.1`, `7860` | Where the server listens; `0.0.0.0` in a container |
-
-`GET /health` returns 503 when search isn't working, for uptime checks.
-`/documents/<file>` serves only the PDFs listed in `manifest.csv`, never the rest of `data/`.
-
-## Deployment (AWS)
-
-One EC2 instance (t4g.small, ARM) runs `deploy/docker-compose.prod.yml`: Caddy for
-HTTPS, the web app, and OpenSearch without the plugins the app doesn't use. Everything
-in AWS is one CloudFormation stack, `deploy/aws/stack.yaml`, named `etf-assistant`.
-
-| In AWS | For |
-|---|---|
-| EC2 instance + Elastic IP | the server; ports 80 and 443 only, shell access through Session Manager |
-| ECR repositories `etf-assistant/app`, `etf-assistant/opensearch` | the container images |
-| S3 bucket | `data.tar.gz` (the documents) and the deploy files |
-| Parameter Store `/etf-assistant/*` | the app's secrets: `APP_PASSWORD`, `ANTHROPIC_API_KEY`; optional settings such as `DAILY_BUDGET_USD` |
-
-```bash
-export AWS_PROFILE=etf
-deploy/push-data.sh       # after the PDFs changed (and ingest + index locally): upload the documents
-deploy/deploy.sh          # build and push the images of the current commit, update the server
-```
-
-`deploy.sh` runs `deploy/remote.sh` on the server through Systems Manager. That script
-fetches the documents and secrets, pulls the images, rebuilds the search index and waits
-for `/health`. To roll back, check out an earlier commit and run `deploy.sh` again.
-
-```bash
-# set or change a secret, then deploy again to apply it
-aws ssm put-parameter --name /etf-assistant/ANTHROPIC_API_KEY --type SecureString --overwrite --value ...
-# read the login password (user name: etf)
-aws ssm get-parameter --name /etf-assistant/APP_PASSWORD --with-decryption --query Parameter.Value --output text
-# a shell on the server (needs the Session Manager plugin); the app is in /opt/etf-assistant
-aws ssm start-session --target $(aws cloudformation describe-stacks --stack-name etf-assistant \
-    --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" --output text)
-```
-
-Every push to any branch runs the tests (`.github/workflows/ci.yml`). Pushes to `main`
-also deploy through `.github/workflows/deploy.yml`, which runs the same `deploy.sh` as
-the stack's `etf-assistant-github-deploy` user. Its access key is stored as the
-repository secrets `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. To replace the key:
-
-```bash
-aws iam create-access-key --user-name etf-assistant-github-deploy   # then: gh secret set ... for both values
-aws iam delete-access-key --user-name etf-assistant-github-deploy --access-key-id <the old one>
-```
-
-To remove everything: delete that user's access key, run `aws s3 rm s3://<bucket> --recursive`, then
-`aws cloudformation delete-stack --stack-name etf-assistant`, then delete the parameters
-under `/etf-assistant/`.
+The live demo runs on one EC2 instance (Docker Compose with Caddy for HTTPS), defined
+in a single CloudFormation stack. Every push runs the tests in GitHub Actions; pushes
+to `main` also build the images, push them to ECR and update the server through
+Systems Manager, which rebuilds the search index and waits for the health check.
+Settings, secrets and operating commands are in [docs/deployment.md](docs/deployment.md).
 
 ## Disclaimer
 
