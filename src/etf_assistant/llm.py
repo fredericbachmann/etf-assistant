@@ -1,8 +1,8 @@
 """The Claude client and model, cost accounting, and a hard spending cap.
 
-Credentials: anthropic.Anthropic() finds them itself. Locally that's the
-`ant auth login` profile; on a server it will be the platform's mechanism.
-The code never reads an API key, so it doesn't change between the two.
+Credentials: anthropic.Anthropic() finds them itself, from the `ant auth login`
+profile locally and from the ANTHROPIC_API_KEY environment variable on the server.
+This code never reads a key.
 
 Budget: every call goes through call() or StreamedCall. Before sending, it reserves the call's
 WORST-CASE cost (prompt size estimated generously from its characters, plus
@@ -20,9 +20,14 @@ import anthropic
 
 MODEL = "claude-haiku-5-5"
 
-# Claude Haiku 5.5, $ per million tokens. Two rate cards, chosen by the prompt length of each call.
+# $ per million tokens as (input, output), per model. Haiku 5.5 has two rate cards, chosen by
+# the prompt length of each call; Sonnet 5.5 has one. A model not listed here can't be called:
+# without its rates neither the cost nor the cap would be right.
 LONG_PROMPT = 100_000
-RATES = {"short": (0.10, 0.50), "long": (0.50, 2.50)}  # (input, output)
+RATES = {
+    "claude-haiku-5-5": {"short": (0.10, 0.50), "long": (0.50, 2.50)},
+    "claude-sonnet-5-5": {"short": (2.00, 10.00), "long": (2.00, 10.00)},
+}
 CACHE_WRITE, CACHE_READ = 1.25, 0.10  # multipliers on the input rate
 CHARS_PER_TOKEN_SAFE = 2.5  # English text is ~4 chars/token; 2.5 overestimates on purpose
 
@@ -47,12 +52,18 @@ def text_of(message) -> str:
     return "".join(b.text for b in message.content if b.type == "text")
 
 
-def cost_of(usage) -> float:
+def rates(model: str, prompt_tokens: float) -> tuple[float, float]:
+    if model not in RATES:
+        raise ValueError(f"no prices configured for model {model!r}; add it to RATES in llm.py")
+    return RATES[model]["long" if prompt_tokens > LONG_PROMPT else "short"]
+
+
+def cost_of(usage, model: str) -> float:
     """Actual cost of one response in USD, from its usage block."""
     read = usage.cache_read_input_tokens or 0
     written = usage.cache_creation_input_tokens or 0
     prompt = usage.input_tokens + read + written
-    rate_in, rate_out = RATES["long" if prompt > LONG_PROMPT else "short"]
+    rate_in, rate_out = rates(model, prompt)
     return (usage.input_tokens * rate_in + written * rate_in * CACHE_WRITE
             + read * rate_in * CACHE_READ + usage.output_tokens * rate_out) / 1e6
 
@@ -63,7 +74,7 @@ def worst_case_cost(params: dict) -> float:
         return o.model_dump(mode="json") if hasattr(o, "model_dump") else str(o)
     chars = len(json.dumps({k: params.get(k) for k in ("system", "tools", "messages")}, default=default))
     prompt = chars / CHARS_PER_TOKEN_SAFE
-    rate_in, rate_out = RATES["long" if prompt > LONG_PROMPT else "short"]
+    rate_in, rate_out = rates(params["model"], prompt)
     return (prompt * rate_in * CACHE_WRITE + params["max_tokens"] * rate_out) / 1e6
 
 
@@ -104,7 +115,7 @@ def call(budget: "Budget | None" = None, *, parse: bool = False, **params):
     try:
         api = client().messages
         response = (api.parse if parse else api.create)(**params)
-        cost = cost_of(response.usage)
+        cost = cost_of(response.usage, params["model"])
         return response, cost
     finally:
         if budget:
@@ -140,7 +151,7 @@ class StreamedCall:
             with client().messages.stream(**self.params) as stream:
                 yield from stream.text_stream
                 self.response = stream.get_final_message()
-            self.cost = cost_of(self.response.usage)
+            self.cost = cost_of(self.response.usage, self.params["model"])
         finally:
             if self.budget:
                 self.budget.settle(reserved, self.cost if self.response is not None else reserved)

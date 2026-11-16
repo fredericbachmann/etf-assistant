@@ -1,12 +1,11 @@
 """
 Retrieval evaluation: does search put the chunk that contains the answer near the top?
 
-No LLM is involved. If retrieval misses the evidence, the LLM can't answer from
-it, so this is measured first: it's fast, free and exactly reproducible.
+No LLM is involved, so a run is fast, free and exactly reproducible.
 
 Query sets
-  golden     the single-fact questions of evals/golden_v1 (realistic wording,
-             tickers like "VWCE"). Small (21), so one question moves the score ~5 points.
+  golden     the single-fact questions of evals/golden_v2 (realistic wording,
+             tickers like "VWCE"). Small (23), so one question moves the score ~4 points.
   templated  one generated question per verified fact ("What is the TER of the
              {fund}?"), ~170 questions. Plain wording, but enough of them to see
              differences between configurations.
@@ -25,12 +24,13 @@ Relevance
 Metrics (per query: rank = position of the first relevant chunk, or of the
 last fact to be covered when several are needed)
   Recall@k  share of queries whose evidence is within the top k chunks.
-            The RAG prompt will contain the top k, so Recall@5 is the headline.
+            Recall@5 is the headline: the agent's per-fund search returns at
+            most 5 passages per fund.
   MRR       mean of 1/rank (0 if not in the top 10): rewards ranking it first.
 
 Configurations
   bm25 / vector / hybrid, each without and with an ISIN filter. "+isin" is an
-  oracle: we pass the correct fund, as if the agent had already resolved
+  oracle: the correct fund is passed, as if the agent had already resolved
   "EIMI" -> IE00BKM4GZ66. It shows how much fund identification is worth.
 
   "hybrid +isin" on the per_fund set is exactly what the agent's per-fund

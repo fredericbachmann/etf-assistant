@@ -1,0 +1,97 @@
+{
+  "run_at": "2026-11-16T09:54:49",
+  "rejudged_from": "evals/results/e2e_2026-11-16T09-53-59.json",
+  "max_cost": 0.03,
+  "golden_version": 2,
+  "agent_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "repeat": 1,
+  "tag": null,
+  "spent": 0.0044219,
+  "consistency": {},
+  "results": [
+    {
+      "id": "o14",
+      "run": 0,
+      "category": "open",
+      "tags": [
+        "ambiguous",
+        "trap"
+      ],
+      "question": "Does the Vanguard FTSE All-World ETF pay out dividends?",
+      "answer": "The name matches two funds in the library, so the answer depends on which one you mean:\n\n- **Vanguard FTSE All-World UCITS ETF (USD) Distributing (IE00B3RBWM25):** Yes. Its KID states \"Income from the ETF Shares will be paid out\" [IE00B3RBWM25 KID p.1].\n- **Vanguard FTSE All-World UCITS ETF (USD) Accumulating (IE00BK5BQT80):** No. Its KID states \"Income from the ETF Shares will be reinvested and reflected in the price of shares in the ETF\" [IE00BK5BQT80 KID p.1].\n\nBoth funds hold the same portfolio. The only difference in this respect is what happens to the income.",
+      "stop_reason": "end_turn",
+      "seconds": 3.6,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "distribution policy dividends paid income accumulating distributing",
+            "isins": [
+              "IE00B3RBWM25",
+              "IE00BK5BQT80"
+            ],
+            "k": 3
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "answered",
+      "judge_reasoning": "Expectation requires: says library has two share classes and answer differs between them — answer identifies both funds, distributing (pays out) and accumulating (reinvests). Covered. Must not answer for one class only — answer covers both. Required behavior: substantive answer — yes. Grounding: KID quotes match evidence exactly. Factsheet of distributing says 'Dividends: Distributed'; accumulating says 'Accumulated'. The statement 'Both funds hold the same portfolio' is an inference not contradicted by evidence (both show identical top 10 holdings and sector/market allocation). No contradictions found. Answer meets expectation.",
+      "judge_cost": 0.0025168,
+      "status": "done",
+      "previous_passed": false
+    },
+    {
+      "id": "u04",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "alias"
+      ],
+      "question": "How big will the next VHYL dividend be?",
+      "answer": "The documents don't say how big the next VHYL dividend will be, and I can't estimate it from them.\n\nWhat they do cover:\n- VHYL is the ticker for the Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing, ISIN IE00B8GKDB10. The factsheet lists the dividend policy as \"Distributed\" with a \"Quarterly\" dividend schedule [IE00B8GKDB10 factsheet p.1].\n- The factsheet has no dividend history, per-share distribution amounts, or yield figure, so I can't give a past payment to extrapolate from [IE00B8GKDB10 factsheet p.1–3].\n- The KID has no forecast of future distributions [IE00B8GKDB10 KID p.3].\n\nDividend amounts depend on the fund's underlying holdings' dividends, which the documents don't forecast. For the next payment, check the issuer's website or the fund's distribution announcements, which list the per-share amount and ex-dividend date.",
+      "stop_reason": "end_turn",
+      "seconds": 9.2,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "dividend distribution yield next distribution amount",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "distribution history dividend per share paid",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "meets_expectation": true,
+      "unsupported": [
+        "The factsheet has no dividend history, per-share distribution amounts, or yield figure — the factsheet states \"Equity yield (dividend) 3.0%\" in its Characteristics table (glossary: the dividend yield applies to the underlying holdings, not the ETF itself)."
+      ],
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Requirement: the answer must say the documents don't contain the next VHYL dividend amount and must not invent it. The answer opens with \"The documents don't say how big the next VHYL dividend will be, and I can't estimate it from them,\" which meets this. It may also offer related documented facts. Its quarterly schedule and 'Distributed' policy match the factsheet's 'Dividends: Distributed' and 'Dividend schedule: Quarterly'. Its claim that the KID has no forecast of future distributions is consistent with the KID. Its claim that the factsheet has 'no ... yield figure' conflicts with the factsheet's characteristics table, which lists 'Equity yield (dividend) 3.0%'. That figure is labelled as underlying-holdings yield in the glossary, so the claim is a borderline misstatement rather than a clear contradiction, but a reader would still be told no yield figure exists. Other statements (no dividend history, no per-share amounts, general advice to check the issuer website) are consistent with the evidence or are general.",
+      "judge_cost": 0.0019051,
+      "status": "done",
+      "previous_passed": false
+    }
+  ]
+}

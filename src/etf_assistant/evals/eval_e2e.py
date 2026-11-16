@@ -5,6 +5,8 @@ Each question gets a fresh agent (no shared conversation). Its answer is graded
 by the LLM judge (judge.py) against the expected result, resolved from the
 verified facts at start-up (check_golden.resolve_golden). If any question
 can't be resolved, the run doesn't start: `uv run check-golden` lists why.
+The judge also reads the documents of the funds an answer is about and fails
+an answer that states something they contradict, whatever the expectation.
 
 Cost safety: agent and judge share one Budget with a hard cap. A call is only
 sent if its worst-case cost still fits under the cap; otherwise the run stops,
@@ -12,7 +14,7 @@ and questions not reached are reported as "not run", never silently dropped.
 
 Consistency: --repeat N asks every selected question N times, each with a fresh
 agent, and reports how many of the N runs passed per question. A question that
-passes some runs and fails others is flaky: one run can't tell you whether a
+passes some runs and fails others is flaky: a single run doesn't show whether a
 change fixed it. Questions tagged `consistency` in the golden set are the ones
 known or expected to vary, so the usual call is --tag consistency --repeat 5.
 
@@ -22,10 +24,16 @@ Usage:
   uv run eval-e2e --category advice
   uv run eval-e2e --tag consistency --repeat 5 --max-cost 0.30
   uv run eval-e2e --rejudge evals/results/e2e_<time>.json   # grade saved answers again (judge only)
+  uv run eval-e2e --rejudge evals/results/e2e_<time>.json --judge-model claude-sonnet-5-5 --max-cost 1
 
---rejudge separates grading from answering: after changing the judge, the same
-answers are graded again for ~2 cents, without re-running the agent. Comparing
-old and new grades on identical answers shows exactly what the judge change did.
+--rejudge separates grading from answering: after a change to the judge, the
+same answers are graded again without re-running the agent. Questions that are
+not in the results file (added to the golden set since) are skipped.
+Old and new grades on identical answers show what the judge change did.
+
+--judge-model grades with another model than the agent's (about 20x the cost
+with Sonnet). With --rejudge it gives a second judge's verdicts on the same
+answers: how often the two agree says how much a pass rate depends on the judge.
 """
 
 import argparse
@@ -34,51 +42,72 @@ import sys
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime
 
 from etf_assistant.agent.loop import Agent
 from etf_assistant.corpus.catalog import load_catalog
-from etf_assistant.evals.check_golden import resolve_golden
-from etf_assistant.evals.judge import judge
-from etf_assistant.llm import Budget, BudgetExceeded, warm_up
+from etf_assistant.evals.check_golden import Golden, resolve_golden
+from etf_assistant.evals.fund_facts import FundFacts, load_verified_facts
+from etf_assistant.evals.judge import Verdict, build_evidence, judge
+from etf_assistant.llm import MODEL, RATES, Budget, BudgetExceeded, warm_up
 from etf_assistant.paths import EVALS
 from etf_assistant.retrieval.store import check_ready
 
 WORKERS = 4  # questions in flight at once
 
 
-def load_questions() -> list[dict]:
+@dataclass
+class Grader:
+    """What every judge call needs besides the question and the answer."""
+    budget: Budget
+    names: dict[str, str]  # ISIN -> fund name
+    facts: dict[str, FundFacts]
+    model: str
+
+    def grade(self, q: dict, answer: str) -> tuple[Verdict, float]:
+        return judge(q, answer, self.names, self.budget, self.model,
+                     evidence=build_evidence(q, answer, self.names, self.facts))
+
+
+def graded(verdict: Verdict, judge_cost: float) -> dict:
+    return {"passed": verdict.passed, "meets_expectation": verdict.meets_expectation,
+            "unsupported": verdict.unsupported, "behavior": verdict.behavior,
+            "judge_reasoning": verdict.reasoning, "judge_cost": judge_cost}
+
+
+def load_golden() -> Golden:
     g = resolve_golden()
     if g.problems:
         sys.exit(f"{len(g.problems)} golden question(s) can't be resolved (first: {g.problems[0]}): "
                  "run `uv run check-golden` for the full list")
-    return g.questions
+    return g
 
 
-def rejudge_one(prev: dict, q: dict, budget: Budget, names: dict[str, str]) -> dict:
+def rejudge_one(prev: dict, q: dict, grader: Grader) -> dict:
     out = dict(prev)
     if prev.get("status") != "done":
         return out
     try:
-        verdict, judge_cost = judge(q, prev["answer"], names, budget)
-        out.update(previous_passed=prev["passed"], passed=verdict.passed, behavior=verdict.behavior,
-                   judge_reasoning=verdict.reasoning, judge_cost=judge_cost, agent_cost=0.0)
+        verdict, judge_cost = grader.grade(q, prev["answer"])
+        out.update(graded(verdict, judge_cost), previous_passed=prev["passed"], agent_cost=0.0)
     except BudgetExceeded as e:
         out.update(status="not_run", error=str(e))
+    except Exception as e:  # one failed judge call shouldn't lose the verdicts already paid for
+        out.update(status="error", error=f"{type(e).__name__}: {e}")
     return out
 
 
-def run_one(q: dict, run: int, budget: Budget, names: dict[str, str]) -> dict:
+def run_one(q: dict, run: int, grader: Grader) -> dict:
     out = {"id": q["id"], "run": run, "category": q["category"], "tags": q.get("tags") or [],
            "question": q["question"]}
     try:
-        a = Agent(budget=budget).ask(q["question"])
+        a = Agent(budget=grader.budget).ask(q["question"])
         out.update(answer=a.text, stop_reason=a.stop_reason, seconds=round(a.seconds, 1),
                    tool_calls=[{"name": t.name, "input": t.input, "error": t.is_error} for t in a.tool_calls],
                    agent_cost=a.cost_usd)
-        verdict, judge_cost = judge(q, a.text, names, budget)
-        out.update(passed=verdict.passed, behavior=verdict.behavior, judge_reasoning=verdict.reasoning,
-                   judge_cost=judge_cost, status="done")
+        verdict, judge_cost = grader.grade(q, a.text)
+        out.update(graded(verdict, judge_cost), status="done")
     except BudgetExceeded as e:
         out.update(status="not_run", error=str(e))
     except Exception as e:  # an API or tool failure shouldn't kill the whole run
@@ -114,6 +143,10 @@ def summarize(results: list[dict]) -> None:
     for cat, rs in by_cat.items():
         print(f"{cat:14}{rate(rs):>12}")
     print(f"{'TOTAL':14}{rate(done):>12}")
+    ungrounded = [r for r in done if r.get("unsupported")]
+    if ungrounded:
+        print(f"\ngrounding: {len(ungrounded)} answers state something the documents contradict; "
+              f"{sum(r['meets_expectation'] for r in ungrounded)} of them met the expectation otherwise")
 
     by_tag = defaultdict(list)
     for r in done:
@@ -147,6 +180,8 @@ def summarize(results: list[dict]) -> None:
             print(f"\n{label(r)} [{r['category']}] {r['question']}")
             print(f"  behavior: {r['behavior']}; tools: {[t['name'] for t in r['tool_calls']]}")
             print(f"  judge: {r['judge_reasoning']}")
+            for u in r.get("unsupported") or []:
+                print(f"  unsupported: {u}")
 
 
 def main() -> None:
@@ -157,13 +192,16 @@ def main() -> None:
     ap.add_argument("--tag", help="only questions with this tag, e.g. consistency")
     ap.add_argument("--repeat", type=int, default=1, help="ask each question N times (fresh agent each time)")
     ap.add_argument("--rejudge", help="results file whose saved answers should be graded again")
+    ap.add_argument("--judge-model", default=MODEL, choices=sorted(RATES),
+                    help=f"model that grades the answers (default {MODEL}, the agent's)")
     a = ap.parse_args()
     if a.repeat < 1:
         ap.error("--repeat must be at least 1")
     if a.rejudge and a.repeat > 1:
         ap.error("--rejudge grades the saved runs; --repeat doesn't apply")
 
-    questions = load_questions()
+    golden = load_golden()
+    questions = golden.questions
     if a.only:
         wanted = set(a.only.split(","))
         questions = [q for q in questions if q["id"] in wanted]
@@ -178,6 +216,7 @@ def main() -> None:
         sys.exit(f"preflight failed: {problem}")  # don't measure a half-broken system
     warm_up()  # renew credentials once, before threads race to do it
     budget = Budget(a.max_cost)
+    grader = Grader(budget, names, load_verified_facts(), a.judge_model)
     t0 = time.time()
     results = []
     with ThreadPoolExecutor(WORKERS) as pool:
@@ -185,14 +224,15 @@ def main() -> None:
             prev = [r for r in json.loads(open(a.rejudge, encoding="utf-8").read())["results"] if r["id"] in by_id]
             for r in prev:
                 r.setdefault("run", 0)  # files from before --repeat
-            print(f"rejudging {len(prev)} saved answers, {WORKERS} at a time, hard cap ${budget.cap:.3f}")
-            jobs = pool.map(lambda r: rejudge_one(r, by_id[r["id"]], budget, names), prev)
+            print(f"rejudging {len(prev)} saved answers with {a.judge_model}, {WORKERS} at a time, "
+                  f"hard cap ${budget.cap:.3f}")
+            jobs = pool.map(lambda r: rejudge_one(r, by_id[r["id"]], grader), prev)
         else:
             # run-major order: if the budget runs out, every question has had its first runs
             work = [(q, run) for run in range(a.repeat) for q in questions]
             print(f"running {len(questions)} questions x {a.repeat} = {len(work)} runs, "
-                  f"{WORKERS} at a time, hard cap ${budget.cap:.3f}")
-            jobs = pool.map(lambda qr: run_one(qr[0], qr[1], budget, names), work)
+                  f"{WORKERS} at a time, judge {a.judge_model}, hard cap ${budget.cap:.3f}")
+            jobs = pool.map(lambda qr: run_one(qr[0], qr[1], grader), work)
         for r in jobs:
             if a.repeat > 1:
                 r["repeated"] = True
@@ -213,6 +253,7 @@ def main() -> None:
     run_at = datetime.now().isoformat(timespec="seconds")
     out = EVALS / "results" / f"e2e_{run_at.replace(':', '-')}.json"
     out.write_text(json.dumps({"run_at": run_at, "rejudged_from": a.rejudge, "max_cost": a.max_cost,
+                               "golden_version": golden.version, "agent_model": MODEL, "judge_model": a.judge_model,
                                "repeat": a.repeat, "tag": a.tag, "spent": budget.spent,
                                "consistency": {i: {"passed": p, "runs": n} for i, (p, n) in consistency(results).items()},
                                "results": results}, indent=2, ensure_ascii=False), encoding="utf-8")

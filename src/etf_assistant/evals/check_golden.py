@@ -1,14 +1,14 @@
 """
-Resolve the golden test set against your verified facts and report problems.
+Resolve the golden test set against the verified facts and report problems.
 
 Usage:
     uv run check-golden                                  # defaults below
-    uv run check-golden evals/golden_v1.yaml data/facts/
+    uv run check-golden evals/golden_v2.yaml data/facts/
 
 resolve_golden() turns every question into one with its concrete expected
 answer filled in. eval-e2e calls it directly at start-up, so there is no file
 to keep in sync. This command is the lint step: it also writes
-evals/golden_v1.resolved.json for reading, and exits non-zero if anything
+evals/golden_v2.resolved.json for reading, and exits non-zero if anything
 can't be resolved (missing or unverified facts file, null value where a fact is
 expected, duplicate ids).
 """
@@ -24,7 +24,7 @@ import yaml
 from etf_assistant.evals.fund_facts import load_verified_facts
 from etf_assistant.paths import EVALS, FACTS
 
-GOLDEN = EVALS / "golden_v1.yaml"
+GOLDEN = EVALS / "golden_v2.yaml"  # golden_v1.yaml stays: the set older results files were run on
 PLACEHOLDER = re.compile(r"\{(IE[0-9A-Z]{10})\.(\w+)\}")
 
 

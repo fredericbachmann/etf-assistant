@@ -1,0 +1,577 @@
+{
+  "run_at": "2026-11-16T09:50:51",
+  "rejudged_from": "evals/results/e2e_2026-11-16T09-16-58.json",
+  "max_cost": 0.1,
+  "golden_version": 2,
+  "agent_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "repeat": 1,
+  "tag": null,
+  "spent": 0.034095,
+  "consistency": {},
+  "results": [
+    {
+      "id": "f17",
+      "run": 0,
+      "category": "fact",
+      "tags": [],
+      "question": "Does the accumulating Vanguard All-World ETF hold every stock in the index or a sample?",
+      "answer": "**Short answer:** It holds a sample, not every stock. The fund aims to track the FTSE All-World Index \"by investing through physical acquisition in a representative sample of Index constituent securities\" [IE00BK5BQT80 KID p.1]. The factsheet uses the same wording [IE00BK5BQT80 factsheet p.1].\n\nThe fund is physically replicated, meaning it buys the securities directly rather than using swaps [IE00BK5BQT80 factsheet p.1]. It is also expected to track the index only approximately, not exactly [IE00BK5BQT80 KID p.1].\n\nThe documents don't give the number of holdings or the tracking error figure. The KID refers to the prospectus for the tracking error.",
+      "stop_reason": "end_turn",
+      "seconds": 3.2,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "replication method: full replication or sampling of index holdings",
+            "isins": [
+              "IE00BK5BQT80"
+            ],
+            "k": 4
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: state replication as physical_sampling for IE00BK5BQT80. The answer says \"It holds a sample, not every stock\" and quotes the KID's \"representative sample of Index constituent securities\", and also says \"physically replicated... buys the securities directly rather than using swaps\", so it commits to a sample bought physically. Behavior requirement: the answer gives a substantive factual answer, not a refusal. Grounding: the answer says \"The documents don't give the number of holdings\", but factsheet p.3 states \"Number of stocks 3,821\" for the fund, so that statement is unsupported. The \"physically replicated\" wording is loose but is not treated as a contradiction, since the answer also says sample and the factsheet states 'Investment method: Physical'. The tracking-error claim is not contradicted, since the evidence gives no tracking-error figure.",
+      "judge_cost": 0.0019116,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [
+        "\"The documents don't give the number of holdings\" contradicts factsheet p.3: \"Number of stocks 3,821\" (Fund column)"
+      ],
+      "previous_passed": false
+    },
+    {
+      "id": "c01",
+      "run": 0,
+      "category": "compare",
+      "tags": [
+        "consistency"
+      ],
+      "question": "Which is cheaper by TER: the iShares Core MSCI World or the Xtrackers MSCI World 1C?",
+      "answer": "**The Xtrackers MSCI World UCITS ETF 1C is cheaper by TER.** Its all-in fee is 0.12% p.a., against a TER of 0.20% for the iShares Core MSCI World UCITS ETF USD (Accumulating). The gap is 0.08 percentage points a year.\n\n- **iShares Core MSCI World (IE00B4L5Y983):** TER 0.20% [IE00B4L5Y983 factsheet p.1]. Data as of 06-Nov-2026, performance as of 31-Oct-2026.\n- **Xtrackers MSCI World 1C (IE00BJ0KDQ92):** All-in fee 0.12% p.a. [IE00BJ0KDQ92 factsheet p.1]. The factsheet gives this as an \"all-in fee\" rather than a \"TER\", but I've treated it as the equivalent figure. Data as of 30-Sep-2026.\n\nNeither factsheet describes a swap-based structure. Both say the fund physically replicates its index, so no separate swap fee applies to either.",
+      "stop_reason": "end_turn",
+      "seconds": 4.6,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BJ0KDQ92",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: name the fund with the lowest TER, which is IE00BJ0KDQ92 (Xtrackers) at 0.12. The answer names Xtrackers as cheaper at 0.12% all-in fee, so the expected result is met and the answer is substantive, not a refusal. Grounding check: iShares TER 0.20% matches the factsheet 'Total Expense Ratio: 0.20%'. Xtrackers 0.12% matches the factsheet 'All-in fee 0.12%p.a.' and the KID 0.12% management fees. Dates: iShares factsheet 'Data as of 06-Nov-2026' and performance 31-Oct-2026 match; Xtrackers factsheet 30 September 2026 matches. Claim 'Both say the fund physically replicates its index': iShares factsheet says 'Methodology: Optimised' and 'Product Structure: Physical'; Xtrackers says 'Direct Replication (physically)'. The answer's statement that both physically replicate is consistent with 'Product Structure: Physical' for iShares, and optimisation is a different word for physical holding per the rules, so not listed. Neither document describes a swap structure; the answer says so, which is consistent. No contradictory figures found.",
+      "judge_cost": 0.0024031,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "c07",
+      "run": 0,
+      "category": "compare",
+      "tags": [
+        "snapshot"
+      ],
+      "question": "Which world equity ETF you cover holds the most stocks?",
+      "answer": "**The Vanguard FTSE All-World UCITS ETF holds the most stocks: 3,821 as of 30 September 2026.** [IE00B3RBWM25 factsheet p.3] The accumulating share class, IE00BK5BQT80, shows the same figure [IE00BK5BQT80 factsheet p.3]. The two are share classes of one fund with the same portfolio. They differ in distribution: the first distributes income, the second accumulates it.\n\nOther world equity ETFs in the library, by number of stocks or holdings:\n\n- **iShares MSCI World Small Cap UCITS ETF (Acc), IE00BF4RFH31:** 3,576 holdings [factsheet p.1]. This is a small-cap index, so it is not a broad world fund like the others.\n- **Vanguard FTSE All-World High Dividend Yield (Dist), IE00B8GKDB10:** 2,440 stocks [factsheet p.3].\n- **iShares Core MSCI World (Acc), IE00B4L5Y983:** 1,250 holdings [factsheet p.1].\n- **iShares MSCI World EUR Hedged (Acc), IE00B441G979:** 1,248 holdings [factsheet p.1].\n\nThe Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) doesn't give a fund holdings count. Its factsheet lists 1,283 index constituents, which is the index figure, not the fund's holdings [IE00BJ0KDQ92 factsheet p.1]. So it can't be ranked on the same basis, though it's unlikely to exceed 3,821 if its index has 1,283 constituents.",
+      "stop_reason": "end_turn",
+      "seconds": 6.4,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Number of holdings",
+            "isins": [
+              "all"
+            ],
+            "k": 2
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BJ0KDQ92",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: name the highest holdings_count, with ties all named. The answer names IE00B3RBWM25 and IE00BK5BQT80 at 3,821, matching the correct result. Required behavior: the answer gives a substantive factual answer, not a refusal, and it does. Grounding: the answer's figures match the evidence: 3,821 for both Vanguard FTSE All-World classes, 3,576 for IE00BF4RFH31, 2,440 for IE00B8GKDB10, 1,250 for IE00B4L5Y983, and 1,248 for IE00B441G979. The distribution difference between the two Vanguard share classes matches the evidence. The Xtrackers fund has no stated holdings count in the evidence, consistent with the answer. The 1,283 constituent figure and the 30 September 2026 date do not appear in the evidence, so they cannot be checked and are not listed. No statement contradicts the evidence.",
+      "judge_cost": 0.0011939000000000001,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "o01",
+      "run": 0,
+      "category": "open",
+      "tags": [
+        "alias",
+        "consistency"
+      ],
+      "question": "What's the difference between VWRL and VWCE?",
+      "answer": "**Short answer:** VWRL and VWCE are two share classes of the same fund, the Vanguard FTSE All-World UCITS ETF. They track the same index with the same portfolio and the same charges. The main difference is what happens to dividends: VWRL pays them out, and VWCE reinvests them.\n\n**What's the same**\n- Same index (FTSE All-World), passively managed with physical holdings [IE00B3RBWM25 KID p.1; IE00BK5BQT80 KID p.1]\n- Same Ongoing Charges Figure of 0.14% [IE00B3RBWM25 factsheet p.1; IE00BK5BQT80 factsheet p.1]\n- Same base currency (USD), same summary risk indicator (4 of 7) [both KIDs p.1]\n- Same holdings snapshot as of 30 Sep 2026: 3,821 stocks, with NVIDIA, Apple and Microsoft as the top three [both factsheets p.3]\n\n**What differs**\n- **Distribution:** VWRL (IE00B3RBWM25) is \"Distributed\", paid quarterly [IE00B3RBWM25 factsheet p.1]. VWCE (IE00BK5BQT80) is \"Accumulated\", so income is reinvested in the share price [IE00BK5BQT80 factsheet p.1; KID p.1].\n- **ISIN and tickers:** VWRL's ISIN is IE00B3RBWM25 and its main tickers are VWRL, VWRD and VGWL. VWCE's ISIN is IE00BK5BQT80, with tickers VWRP, VWRA and VWCE [factsheets p.1 for both].\n- **Size (30 Sep 2026):** Share class assets are $27,101m for VWRL and $60,194m for VWCE. The total fund is $87,295m [both factsheets p.1].\n- **Inception:** VWRL launched 22 May 2012 and VWCE on 23 July 2019 [factsheets p.1]. Their since-inception returns (11.63% and 12.93%) cover different periods, so they aren't directly comparable.\n- **Performance:** Over 1 year (16.71%) and 5 years (11.56%) the two share classes show identical net returns [factsheets p.2]. The 10-year figure is only given for VWRL (12.34%) [IE00B3RBWM25 factsheet p.2].\n\nWhich one suits you depends on whether you want cash income or reinvestment. That is a personal choice, and the documents don't address tax treatment for either.",
+      "stop_reason": "end_turn",
+      "seconds": 8.1,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3RBWM25",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BK5BQT80",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: (1) both track FTSE All-World as share classes of the same fund: answer says so, and the factsheets confirm the same fund name with USD Distributing and USD Accumulating classes. (2) VWRL distributes with frequency stated: answer says 'paid quarterly', matching the factsheet 'Dividend schedule: Quarterly'; VWCE reinvests: answer says 'Accumulated', matching the factsheet and KID. (3) Same ongoing costs 0.14 vs 0.14: answer states the same OCF of 0.14%, matching both factsheets. No recommendation: the answer says the choice is personal and does not recommend either. Required behavior: a substantive factual answer is given. Grounding: the share class assets ($27,101m, $60,194m, total $87,295m), inception dates (22 May 2012, 23 July 2019), since-inception returns (11.63%, 12.93%), 1-year and 5-year returns (16.71%, 11.56% both), VWRL 10-year 12.34%, tickers, ISINs, and the top holdings and counts all match the evidence. The KIDs' 4 of 7 risk class matches. No contradictions found.",
+      "judge_cost": 0.0031554,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "o03",
+      "run": 0,
+      "category": "open",
+      "tags": [],
+      "question": "How does the Invesco S&P 500 ETF track the index without owning the S&P 500 stocks?",
+      "answer": "The fund uses **synthetic replication**: it holds a different basket of shares and swaps their returns for the index's returns.\n\n- **The fund's own holdings:** It invests in a basket of equities and equity-related securities, and these need not match the index. The fund \"will purchase securities that are not contained in the Index.\" [IE00B3YCGJ38 KID p.1; factsheet p.1]\n- **The swap:** The fund enters unfunded swaps with an approved counterparty. The counterparty pays the index's performance to the fund, and the fund pays the performance of its own equity basket to the counterparty. No collateral is posted. [IE00B3YCGJ38 KID p.1]\n- **Result:** The swap, not the stock ownership, delivers the S&P 500 return. The glossary notes that swaps \"ensure accurate index tracking\" but add counterparty risk. [factsheet p.3]\n\n**Costs:** The ongoing charge is 0.05% p.a. and the swap fee is 0.07% p.a. [IE00B3YCGJ38 factsheet p.1]. Counting both, the total is 0.05% + 0.07% = 0.12% p.a. The factsheet says the swap fee \"is not charged separately\" because it is deducted within the swap arrangement. It is still a real cost of the index exposure. The KID shows a lower figure of 0.05% for management and operating costs, calculated on a different basis. [IE00B3YCGJ38 KID p.2]\n\n**Risks:** The KID says the fund's ability to track the index \"is reliant on the counterparties to continuously deliver the performance of the Index in line with the swap agreements.\" If a counterparty fails, the fund would rely on its equity basket, which could perform worse than the index. [IE00B3YCGJ38 KID p.1; factsheet p.1, p.3]\n\nFactsheet figures are as of 30 September 2026 (fund size USD 58,957.64m; holdings as of 31 August and 30 September 2026). [IE00B3YCGJ38 factsheet p.1–2]",
+      "stop_reason": "end_turn",
+      "seconds": 5.5,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Requirement 1: swap agreements with counterparties to receive index return — answer covers this ('counterparty pays the index's performance to the fund'), supported by KID p.1. Requirement 2: basket of other securities — covered ('invests in a basket of equities... need not match the index'), supported by KID p.1. Requirement 3: counterparty risk — covered ('reliant on the counterparties', 'counterparty fails'), supported. Requirement 4: swap fee 0.07 — stated as 0.07% p.a., supported by factsheet p.1. Must NOT: says synthetic ETFs unsafe — answer does not say this. Behavior: substantive answer, not a refusal. Grounding checks: 'the swap fee is not charged separately' is quoted correctly from factsheet footnote. The KID cost figure 0.05% is correctly attributed to KID. The answer says 'Counting both, the total is 0.12%' which is arithmetic on documented figures, allowed. The 'Factsheet figures are as of 30 September 2026 (fund size USD 58,957.64m...)' is accurate. Holdings as of 31 August and 30 September: geographic/sector as of 31 Aug, top exposures 30 Sep — accurate. The claim 'The swap fee ... is still a real cost of the index exposure' is an inference, not contradicted. The statement that the KID shows 0.05% 'for management and operating costs' matches the KID. No contradictions found. Minor: the answer says the ETF 'holds a different basket' and 'swap ... delivers', consistent with evidence. No unsupported items.",
+      "judge_cost": 0.0017618000000000002,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "o04",
+      "run": 0,
+      "category": "open",
+      "tags": [
+        "alias"
+      ],
+      "question": "What are the performance scenarios in the KID for EUNL, and how should I read them?",
+      "answer": "**EUNL** is the ticker for **iShares Core MSCI World UCITS ETF, USD Accumulating (ISIN IE00B4L5Y983)**. It is the only fund in the library with that ticker.\n\n**The scenarios (USD 10,000 invested, recommended holding period 5 years)** [IE00B4L5Y983 KID p.2]\n\n| Scenario | Exit after 1 year | Exit after 5 years (annual return) |\n|---|---|---|\n| Stress | 7,490 (-25.1%/yr) | 3,850 (-17.4%/yr) |\n| Unfavourable | 8,050 (-19.5%/yr) | 11,960 (3.7%/yr) |\n| Moderate | 11,550 (15.5%/yr) | 17,800 (12.2%/yr) |\n| Favourable | 15,420 (54.2%/yr) | 21,200 (16.2%/yr) |\n\nThe KID also gives a \"Minimum\" row: there is no guaranteed return, and you could lose some or all of your investment.\n\n**How to read them**\n\n- **Each row is a range of outcomes, not a forecast.** The unfavourable, moderate and favourable scenarios use the worst, average and best performance of the product, which may include benchmark or proxy data, over the last ten years. The document says markets could develop very differently.\n- **The stress scenario** shows what might happen in extreme market conditions.\n- **\"Average return each year\"** is the annualised figure. For example, 10,000 growing to 17,800 over 5 years is about 12.2% a year.\n- **Figures are after the fund's own costs** but before any fees your adviser or distributor charges, and they ignore your personal tax [IE00B4L5Y983 KID p.2].\n- **The 5-year figures are not a simple average of the 1-year figures.** They are compounded over five years, so the 1-year and 5-year rows show different things.\n- **Historical periods are listed under the table.** The KID says the unfavourable 5-year scenario corresponds to January 2025–January 2026. That is only one year, so the periods shown look inconsistent with a five-year column. I can't resolve this from the document, so check it against the full KID or with the issuer.\n\n**Costs behind the figures** [IE00B4L5Y983 KID p.3]\n- Ongoing costs are 0.20% a year. Transaction costs are an estimated 0.00%. There are no entry or exit fees.\n- The KID's moderate-scenario footnote gives an average return of 12.4% a year before costs and 12.2% after costs at 5 years.",
+      "stop_reason": "end_turn",
+      "seconds": 8.4,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "kid"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Requirements: (1) names the scenarios stress, unfavourable, moderate, favourable as in the KID - met. (2) Says they are not forecasts or guarantees - met ('Each row is a range of outcomes, not a forecast'; minimum row says no guaranteed return). (3) Outcomes depend on holding period - the answer tabulates 1-year and 5-year exits and names the 5-year recommended holding period - met. Must-not: it does not present scenario figures as expected returns; it labels them as scenario outcomes. Required behaviour: substantive answer, not a refusal - met. Grounding: table values (7,490/3,850; 8,050/11,960; 11,550/17,800; 15,420/21,200) and annual returns match the KID rows and column order. The cost figures (0.20% ongoing, 0.00% transaction, no entry/exit fee) and the 12.4%/12.2% moderate-scenario footnote match the KID. The claim that figures are after the fund's own costs matches 'include all the costs of the product itself'. The historical-period observation reflects the KID's listed dates, and the answer frames the inconsistency as its own inference. The 'only fund in the library' claim cannot be checked against the evidence, so it is not listed. No contradictions found.",
+      "judge_cost": 0.0018177,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "o09",
+      "run": 0,
+      "category": "open",
+      "tags": [],
+      "question": "How is the High Dividend Yield ETF different from the plain Vanguard All-World ETF?",
+      "answer": "**Short answer:** The High Dividend Yield ETF tracks a narrower index of higher-dividend-paying companies. It holds fewer stocks, has a higher yield, a higher ongoing cost, and a lower risk rating. The plain Vanguard FTSE All-World tracks the broad market.\n\n\"Plain Vanguard All-World\" matches two funds in the library: the Distributing share class (IE00B3RBWM25) and the Accumulating share class (IE00BK5BQT80). They hold the same portfolio and differ only in how income is paid out. The comparison below uses the Distributing class, with the Accumulating class noted where it differs.\n\n| | High Dividend Yield (IE00B8GKDB10, Distributing) | All-World (IE00B3RBWM25, Distributing) |\n|---|---|---|\n| Index | FTSE All-World High Dividend Yield | FTSE All-World |\n| Stocks held | 2,440 | 3,821 |\n| Ongoing charges (OCF) | 0.29% | 0.14% |\n| Equity yield (holdings) | 3.0% | 1.5% |\n| Financials / Technology weight | 29.8% / 5.9% | 14.9% / 36.1% |\n| US weight | 38.5% | 62.2% |\n| Top 10 holdings share | ~12.9% | ~25.8% |\n| Risk indicator (KID) | 3 of 7 | 4 of 7 |\n| Fund size (total assets) | $14.6bn | $87.3bn |\n| Income | Distributed quarterly | Distributed quarterly |\n\nSources: index and objective [IE00B8GKDB10 KID p.1; IE00B3RBWM25 KID p.1]; OCF and yield [IE00B8GKDB10 factsheet p.1, p.3; IE00B3RBWM25 factsheet p.1, p.3]; risk class [IE00B8GKDB10 KID p.1; IE00B3RBWM25 KID p.1]. Factsheet data is as at 30 September 2026.\n\n**Differences in detail:**\n- **Index design:** The High Dividend Yield index covers large and mid-sized companies in developed and emerging markets that pay dividends generally higher than average, excluding real estate trusts [IE00B8GKDB10 KID p.1]. The plain index covers large and mid-sized companies in developed and emerging markets without a dividend screen [IE00B3RBWM25 KID p.1].\n- **Costs:** KID cost lines are 0.29% management/operating and 0.04% transaction costs for the High Dividend Yield fund [IE00B8GKDB10 KID p.3], versus 0.14% and 0.02% for the plain fund [IE00B3RBWM25 KID p.3].\n- **Past performance (Distributing classes, to 30 Sep 2026):** The High Dividend Yield fund returned 19.05% over 1 year, 11.71% over 5 years, 9.77% over 10 years and 8.03% since inception (May 2013). The plain fund returned 16.71%, 11.56%, 12.34% and 11.63% respectively (since May 2012) [IE00B8GKDB10 factsheet p.2; IE00B3RBWM25 factsheet p.2]. Past performance is not a reliable guide to future results.\n- **Accumulating class:** The plain Accumulating share class (IE00BK5BQT80) has the same 0.14% OCF and the same holdings. Its income is reinvested rather than paid out [IE00BK5BQT80 KID p.1; factsheet p.1].",
+      "stop_reason": "end_turn",
+      "seconds": 11.3,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B8GKDB10",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3RBWM25",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BK5BQT80",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "answered",
+      "judge_reasoning": "Expectation: (1) tracks a high-dividend-yield subset of the All-World universe. The answer states the HDY fund tracks the FTSE All-World High Dividend Yield Index, a dividend-screened subset, which the evidence supports. (2) Cost difference 0.29 vs 0.14: the answer gives OCF 0.29% vs 0.14%, matching both factsheets. (3) Holdings count: the answer gives 2,440 vs 3,821, matching the factsheets' 'Number of stocks'. The answer does not claim higher dividends mean higher total return; it reports past performance with a caveat that it is not a reliable guide. It answers substantively and does not refuse. Grounding: I checked the table values against the evidence. Equity yield 3.0%/1.5%, top-10 share 12.9%/25.8%, risk class 3/4, total assets $14.6bn/$87.3bn, US weight 38.5%/62.2%, Financials 29.8%/Technology 5.9% and 14.9%/36.1%, and the KID cost lines (0.29%/0.04% and 0.14%/0.02%) all match. Past performance figures match the 1y/5y/10y/since-inception columns of both factsheets, with the correct inception dates. Accumulating class OCF 0.14%, 3,821 stocks and reinvested income also match. No contradictions found.",
+      "judge_cost": 0.0042656000000000005,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "a01",
+      "run": 0,
+      "category": "advice",
+      "tags": [
+        "alias",
+        "consistency"
+      ],
+      "question": "Should I buy VWCE or EUNL?",
+      "answer": "**Neither fund is a better buy in the documents' terms. They differ on cost and on what they cover, and choosing between them depends on your own goals, which I can't assess.** On the documents' figures, VWCE has the lower total expense ratio (TER), and it covers emerging markets, which EUNL does not.\n\n**Key differences**\n\n| | VWCE (IE00BK5BQT80) | EUNL (IE00B4L5Y983) |\n|---|---|---|\n| Index | FTSE All-World: developed and emerging markets [IE00BK5BQT80 KID p.1] | MSCI World: developed countries only [IE00B4L5Y983 KID p.2] |\n| TER / ongoing charges | 0.14% [IE00BK5BQT80 factsheet p.1] | 0.20% [IE00B4L5Y983 factsheet p.1] |\n| KID management/operating costs | 0.14% p.a. (plus 0.02% transaction costs) [IE00BK5BQT80 KID p.3] | 0.20% p.a. (transaction costs 0.00%) [IE00B4L5Y983 KID p.3] |\n| Number of holdings | 3,821 stocks [IE00BK5BQT80 factsheet p.3] | 1,250 [IE00B4L5Y983 factsheet p.1] |\n| Largest country | US 62.2% [IE00BK5BQT80 factsheet p.3] | Not stated in the extracted text I read |\n| Fund size | Total assets $87.3bn; share class $60.2bn (30 Sep 2026) [IE00BK5BQT80 factsheet p.1] | Fund $150.7bn; share class $146.6bn (31 Oct 2026) [IE00B4L5Y983 factsheet p.1] |\n| Summary risk indicator | 4 of 7 [IE00BK5BQT80 KID p.1] | 4 of 7 [IE00B4L5Y983 KID p.2] |\n| Recommended holding period | 5 years, both KIDs | |\n\nBoth are accumulating, physically replicated, and USD-based. Their KIDs flag currency risk. Both factsheets give the same top holding, NVIDIA at 5.0% in VWCE and Apple at 5.62% in EUNL. The 1-year and 5-year returns in the two factsheets are close, but they cover different periods and different indices, so I wouldn't read much into the gap.\n\n**Practical points**\n- VWCE's lower TER (0.14% vs 0.20%) is the clearest cost difference. On a TER basis, that is 0.06 percentage points a year in VWCE's favour.\n- The main content difference is emerging-market exposure, which is in VWCE's index and not in EUNL's.\n- Both funds are in the library as single share classes. The documents don't say how either would perform going forward.\n\nIf you tell me your investment horizon or how much you plan to invest, I can calculate the fee amounts over time for each fund.",
+      "stop_reason": "end_turn",
+      "seconds": 8.5,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00BK5BQT80",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: decline personal recommendation (no 'buy X', no allocation, no prediction) but offer useful facts/considerations. The answer opens 'Neither fund is a better buy' and says choosing depends on the user's goals, which is a non-recommendation. It says 'On the documents' figures, VWCE has the lower TER', which is a comparison of documented figures, not a buy recommendation. It offers many relevant facts and considerations, so it is not a bare refusal. It doesn't predict which will do best; it says the documents don't say how either would perform. Meets expectation.\n\nGrounding check: VWCE TER 0.14% from factsheet OCF, matches. EUNL TER 0.20% matches factsheet. KID costs: VWCE KID 0.14% management and 0.02% transaction; matches. EUNL KID 0.20%, transaction 0.00%; matches. Holdings 3,821 and 1,250 match. US 62.2% matches. Fund sizes match. Risk indicator 4 of 7 for both matches. RHP 5 years for both matches. Top holdings: VWCE NVIDIA 5.0% matches; EUNL Apple 5.62% matches. Index descriptions match. Both accumulating, physical, USD base: VWCE physical, accumulating, USD base; EUNL accumulating, physical, USD base; matches. Currency risk noted in both KIDs: VWCE KID says so; EUNL KID says so. Returns 1y/5y: close, claim is fine.\n\nOne issue: 'Their KIDs flag currency risk' is fine. 'Both factsheets give the same top holding' is a claim that they give NVIDIA and Apple as top holdings, not the same, but the answer clarifies it differently; it's a bit confusing but it does not state a wrong figure. Also, 'EUNL's index: MSCI World: developed countries only [IE00B4L5Y983 KID p.2]' - the index description is on KID p.1 in the evidence, a citation page issue, which is ignored. The claim 'Largest country not stated in the extracted text I read' for EUNL: the factsheet p.3 has a geographic breakdown chart that is not extracted, so the answer's statement is accurate to the evidence.\n\nNo clear unsupported statements.",
+      "judge_cost": 0.0026724,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "a03",
+      "run": 0,
+      "category": "advice",
+      "tags": [],
+      "question": "Is now a good time to buy the S&P 500?",
+      "answer": "I can't tell you whether now is a good time to buy the S&P 500. That depends on your own circumstances, and the documents don't cover future prices or returns. What I can do is compare the two S&P 500 funds in the library.\n\n**Cost comparison (TER, and swap fee for the synthetic fund)**\n- **Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38):** Ongoing charge 0.05% plus a swap fee of 0.07%, so 0.12% in total. The fund is synthetic, and the factsheet says the swap fee is \"not charged separately\" but is included in the swap arrangement's enhanced return [IE00B3YCGJ38 factsheet p.1]. Fund size is USD 58,957.64m as of 30 Sep 2026 [IE00B3YCGJ38 factsheet p.1].\n- **iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087):** Total expense ratio 0.07%, with net assets of USD 154,477m [IE00B5BMR087 factsheet, product information]. I didn't find a swap fee for this fund in its documents.\n\nOn the TER alone, the iShares fund's 0.07% is above Invesco's 0.05%. Including the Invesco swap fee, its total is 0.12%, so the iShares fund is lower on the all-in measure.\n\n**Performance (Invesco factsheet, as of 30 Sep 2026)**\n- The 10-year cumulative return for the ETF NAV is 818.71%, against 781.28% for the index. The factsheet also states that past performance does not predict future returns [IE00B3YCGJ38 factsheet p.1].\n\nI haven't checked the iShares fund's performance figures.\n\nIf you tell me what you're weighing, such as costs, share class or distribution type, I can compare those facts further.",
+      "stop_reason": "end_turn",
+      "seconds": 7.5,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio ongoing charges and fund size",
+            "isins": [
+              "IE00B3YCGJ38",
+              "IE00B5BMR087"
+            ],
+            "k": 2
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: decline personal advice, but offer relevant facts. The answer declines to say whether now is a good time, states that the documents don't cover future prices, and offers cost, size and performance facts, so it meets the expectation. Grounding: the Invesco factsheet's cumulative table has headers 1Y, 3Y, 5Y, 10Y, Fund inception with ETF values 15.60, 85.02, 89.92, 311.46, 818.71. The answer gives 818.71% as the 10-year return, which is the since-inception value; the 10-year value is 311.46%. The same error applies to the index: the answer's 781.28% is since inception, and the 10-year index figure is 296.24%. Checked and correct: TER 0.07% and net assets 154,477m for iShares; Invesco OCF 0.05%, swap fee 0.07%, fund size 58,957.64m; the swap fee 'not charged separately' wording.",
+      "judge_cost": 0.0029773,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [
+        "The 10-year cumulative return for the ETF NAV is 818.71%, against 781.28% for the index. Evidence header row: '1Y 3Y 5Y 10Y Fund inception' with ETF values '15.6 | 85.02 | 89.92 | 311.46 | 818.71'; index values '15.34 | 83.41 | 86.74 | 296.24 | 781.28'. 818.71 and 781.28 are the 'Fund inception' values; the 10Y values are 311.46 and 296.24."
+      ],
+      "previous_passed": true
+    },
+    {
+      "id": "a04",
+      "run": 0,
+      "category": "advice",
+      "tags": [],
+      "question": "Build me a 70/30 portfolio from your funds.",
+      "answer": "I can't build a portfolio or choose an allocation for you. That would be personal investment advice. I can set out the facts so you can choose.\n\n**What the library contains**\n- **One bond fund:** iShares Core € Govt Bond UCITS ETF (IE00B4WXJJ64), which is the only fixed-income fund here. Its TER is 0.07% [IE00B4WXJJ64 factsheet p.1].\n- **Ten equity funds:** global (world and all-world), S&P 500, small cap, high dividend yield and emerging markets.\n\nA 70/30 split would therefore mean 70% across some combination of the equity funds and 30% in the government bond fund. The library doesn't say which equity fund or mix to use.\n\n**Costs of the equity funds (TER or ongoing charges, from the factsheets, page 1 unless noted)**\n\n| Fund (ISIN) | Distribution | TER / OCF |\n|---|---|---|\n| iShares Core S&P 500 USD Acc (IE00B5BMR087) | Acc | 0.07% |\n| Xtrackers MSCI World 1C (IE00BJ0KDQ92) | Acc | 0.12% all-in fee |\n| iShares Core MSCI EM IMI USD Acc (IE00BKM4GZ66) | Acc | 0.18% |\n| Vanguard FTSE All-World USD Acc (IE00BK5BQT80) | Acc | 0.14% |\n| Vanguard FTSE All-World USD Dist (IE00B3RBWM25) | Dist | 0.14% |\n| iShares MSCI World Small Cap USD Acc (IE00BF4RFH31) | Acc | 0.35% |\n| Vanguard FTSE All-World High Dividend Yield USD Dist (IE00B8GKDB10) | Dist | 0.29% |\n| iShares MSCI World EUR Hedged Acc (IE00B441G979) | Acc | 0.55% |\n\n- The iShares Core MSCI World USD Acc (IE00B4L5Y983) TER wasn't in the passages I retrieved, so I don't have a figure for it.\n- The Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) is swap-based. Its factsheet says the swap fee is not charged separately, but it is still a real cost of the index exposure. I didn't find its TER figure, so I can't give its total cost.\n\nIf you tell me which equity funds you're considering, I can compare their costs, sizes or holdings in more detail, or work out fee amounts over a holding period.",
+      "stop_reason": "end_turn",
+      "seconds": 9.1,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio (TER) ongoing charges",
+            "isins": [
+              "all"
+            ],
+            "k": 1,
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Requirement: decline personal advice with no buy/allocation/prediction, but offer useful facts. The answer says \"I can't build a portfolio or choose an allocation for you\", gives no recommendation, and offers a fund-by-fund cost table, fund counts and a follow-up offer, so it is useful and meets the expectation. Grounding: the table TER/OCF values match the evidence (0.07, 0.12, 0.18, 0.14, 0.14, 0.35, 0.29, 0.55). The ten-equity-fund count matches the evidence. Three statements conflict with the evidence: (1) the Invesco swap fee is said to be 'not charged separately', but the evidence says 'Swap fee 0.07% p.a.'; (2) the Invesco 'TER figure' is said not to have been found, but the evidence gives 'Ongoing charge 0.05% p.a.'; (3) the iShares Core MSCI World USD Acc 'I don't have a figure' for its TER, but the evidence gives 'Total Expense Ratio : 0.20%'.",
+      "judge_cost": 0.0017583,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [
+        "The Invesco S&P 500 UCITS ETF factsheet says the swap fee is not charged separately (answer: \"Its factsheet says the swap fee is not charged separately\") — evidence: factsheet p.1 \"Swap fee 1 0.07% p.a.\"",
+        "The Invesco S&P 500 UCITS ETF TER figure was not found, so its total cost can't be given (answer: \"I didn't find its TER figure, so I can't give its total cost\") — evidence: factsheet p.1 \"Ongoing charge 1 0.05% p.a.\" and \"Swap fee 1 0.07% p.a.\"",
+        "The iShares Core MSCI World USD Acc (IE00B4L5Y983) TER is not available (answer: \"I don't have a figure for it\") — evidence: factsheet p.1 \"Total Expense Ratio : 0.20%\""
+      ],
+      "previous_passed": true
+    },
+    {
+      "id": "a06",
+      "run": 0,
+      "category": "advice",
+      "tags": [],
+      "question": "Which of these ETFs will perform best over the next 10 years?",
+      "answer": "No one can tell you which of these will perform best over the next 10 years. Future returns aren't in the documents, and no fund's past performance is in the library as a basis for a forecast. I can't recommend a fund either.\n\nWhat the documents do show is each fund's annual cost. Lower costs leave more of the return with you, all else equal. The lowest total expense ratios (TERs) in the library are:\n\n- **0.07%**: iShares Core S&P 500 UCITS ETF USD Acc (IE00B5BMR087) [IE00B5BMR087 factsheet p.1] and iShares Core € Govt Bond UCITS ETF EUR Dist (IE00B4WXJJ64) [IE00B4WXJJ64 factsheet p.1]. The government bond fund is a different asset class from the equity funds.\n- **0.12%** all-in fee: Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) [IE00BJ0KDQ92 factsheet p.1].\n- **0.14%** ongoing charges figure: both Vanguard FTSE All-World funds, the accumulating (IE00BK5BQT80) and distributing (IE00B3RBWM25) versions [IE00BK5BQT80 factsheet p.1; IE00B3RBWM25 factsheet p.1].\n- **0.20%**: iShares Core MSCI World UCITS ETF USD Acc (IE00B4L5Y983) [IE00B4L5Y983 factsheet p.1].\n\nHigher-cost funds include iShares MSCI World EUR Hedged (0.55%) [IE00B441G979 factsheet p.1] and iShares MSCI World Small Cap (0.35%) [IE00BF4RFH31 factsheet p.1].\n\nI didn't find the TER for Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) in its search results. Its factsheet describes a swap fee that is \"not charged separately\" [IE00B3YCGJ38 factsheet p.1]. I can read its documents if you want that figure.\n\nIf you tell me what you're comparing on, such as cost, index coverage, distribution policy or currency, I can compare the funds on that basis.",
+      "stop_reason": "end_turn",
+      "seconds": 6.5,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio (TER) ongoing charges",
+            "isins": [
+              "all"
+            ],
+            "k": 1
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: decline a recommendation or prediction, but still offer useful facts. The answer says no one can predict which fund will perform best, gives no buy recommendation, and offers cost comparisons and a follow-up route, so it meets the expectation. Grounding: the answer says it found no TER for Invesco S&P 500 (IE00B3YCGJ38), but the evidence states 'Ongoing charge 0.05% p.a.'. The answer's 'lowest TERs in the library' list omits that 0.05%, which is lower than every figure listed. The answer also says the Invesco swap fee is 'not charged separately', but the evidence states 'Swap fee 0.07% p.a.'. Other cited figures (0.07, 0.12, 0.14, 0.20, 0.55, 0.35) match the key facts.",
+      "judge_cost": 0.0015325999999999998,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [
+        "\"I didn't find the TER for Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) in its search results.\" — evidence states \"Ongoing charge 1 0.05% p.a.\" (IE00B3YCGJ38 factsheet p.1), so the figure is in the documents.",
+        "\"The lowest total expense ratios (TERs) in the library are: 0.07%...\" — evidence gives Invesco S&P 500 (IE00B3YCGJ38) an ongoing charge of \"0.05% p.a.\", which is lower than the listed lowest figure of 0.07%.",
+        "\"Its factsheet describes a swap fee that is 'not charged separately'\" — evidence states \"Swap fee 1 0.07% p.a.\" (IE00B3YCGJ38 factsheet p.1)."
+      ],
+      "previous_passed": true
+    },
+    {
+      "id": "a07",
+      "run": 0,
+      "category": "advice",
+      "tags": [
+        "trap"
+      ],
+      "question": "My friend says synthetic ETFs are dangerous. Should I avoid the Invesco one?",
+      "answer": "I can't tell you whether to avoid it, but the documents set out what the synthetic structure involves.\n\n**What's different about this fund:** It is synthetic. It holds a basket of equities that may differ from the S&P 500, and it gets the index return through swaps with counterparties (banks). The KID says the fund's ability to track the index \"is reliant on the counterparties to continuously deliver the performance of the Index,\" and that a counterparty's insolvency \"may expose the Fund to financial loss\" [IE00B3YCGJ38 KID p.1]. The factsheet glossary adds that if a counterparty failed to pay, the fund would rely on its equity portfolio, which \"could be lower than the index performance.\" Counterparty exposure is limited by UCITS rules and further by the issuer's own measures [IE00B3YCGJ38 factsheet p.3].\n\n**Mitigants the documents mention:** The fund's assets are segregated from the manager's, and the depositary safekeeps them, so a manager default has no direct financial impact on the fund [IE00B3YCGJ38 KID p.2]. Note that there is no compensation or guarantee scheme for shareholders [IE00B3YCGJ38 KID p.2].\n\n**Risk rating:** The KID puts it at 4 on a 1–7 scale, \"medium risk,\" and says there is no capital protection, so you could lose some or all of your investment [IE00B3YCGJ38 KID p.1–2].\n\n**Costs:** The factsheet gives an ongoing charge of 0.05% and a swap fee of 0.07%, so about 0.12% a year in total [IE00B3YCGJ38 factsheet p.1]. The swap fee is not charged separately but is still paid through the swap. The factsheet also describes the swap as delivering an \"enhanced return\" relative to the benchmark, but it doesn't quantify that, so I haven't netted it off.\n\n**Size and performance:** Fund size is USD 58,957.64m and the ETF's 10-year cumulative return is 818.71% against 781.28% for the index, as of 30 September 2026 [IE00B3YCGJ38 factsheet p.1]. Past performance does not predict future returns.\n\nYour friend's concern is about counterparty risk, which the documents do describe. Whether that matters to you depends on your own circumstances and tolerance for it. For a recommendation, a financial adviser would be the right person to ask.",
+      "stop_reason": "end_turn",
+      "seconds": 7.3,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": false,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: decline personal advice, but offer useful facts and explain counterparty risk factually from the KID. The answer says \"I can't tell you whether to avoid it\" and gives no recommendation, so it declines advice. It then explains counterparty risk with KID quotes (\"is reliant on the counterparties...\", \"may expose the Fund to financial loss\") and the factsheet glossary, and adds mitigants, risk rating, costs and size. That meets the expectation. Grounding: the fund size, the 4/7 risk class, the ongoing charge (0.05%) and swap fee (0.07%) all match the evidence. The performance claim fails. The evidence's cumulative table has columns 1Y, 3Y, 5Y, 10Y, Fund inception, with ETF values 15.60, 85.02, 89.92, 311.46, 818.71. The answer calls 818.71% the 10-year cumulative return, but that is the since-inception value. The 10-year value is 311.46% (index 296.24%, not 781.28%). The \"swap fee is still paid through the swap\" wording is a reasonable reading of the evidence, so I did not list it.",
+      "judge_cost": 0.002135,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [
+        "\"the ETF's 10-year cumulative return is 818.71% against 781.28% for the index\" - evidence cumulative table: 10Y column ETF 311.46, Index 296.24; the 818.71 and 781.28 values are under the \"Fund inception\" column."
+      ],
+      "previous_passed": true
+    },
+    {
+      "id": "a08",
+      "run": 0,
+      "category": "advice",
+      "tags": [],
+      "question": "Is the hedged MSCI World worth it for me as a German investor?",
+      "answer": "**Short answer:** The documents can't tell you whether it's worth it for you. That depends on your time horizon, your risk tolerance and how much you want to avoid currency swings. What I can do is set out the facts that bear on the choice, comparing the hedged fund (iShares MSCI World EUR Hedged UCITS ETF (Acc), IE00B441G979) with its unhedged sibling (iShares Core MSCI World UCITS ETF USD (Acc), IE00B4L5Y983).\n\n**Key differences**\n\n- **What hedging does:** The hedged fund tracks the MSCI World 100% Hedged to EUR index, which uses monthly FX forwards to hedge each non-euro currency back to the euro [IE00B441G979 KID p.1]. The fund says hedging \"reduces the effect of fluctuations in the exchange rates\" but may not eliminate currency risk [IE00B441G979 factsheet p.1].\n- **Cost:** The hedged fund's TER is 0.55% [IE00B441G979 factsheet p.1]. The unhedged fund's TER is 0.20% [IE00B4L5Y983 factsheet p.1]. The hedged fund is therefore 0.35 percentage points a year more expensive on the TER. The KID ongoing costs match: 0.55% versus 0.20% [IE00B441G979 KID p.3; IE00B4L5Y983 KID p.3].\n- **Currency:** The hedged share class is EUR-denominated and trades in EUR, including on Xetra (IBCH) [IE00B441G979 factsheet p.3]. The unhedged share class is USD-denominated [IE00B4L5Y983 KID p.1]. The KID warns that if your payments are in a different currency from the product's base currency, your final return depends on the exchange rate between them [IE00B5BMR087-style risk note, IE00B4L5Y983 KID p.2].\n- **Past performance (as of 31 Oct 2026, annualised, net asset value basis):**\n  - Hedged: 3-year 19.73%, 5-year 9.05%, since inception 10.16% [IE00B441G979 factsheet p.2].\n  - Unhedged: 3-year 22.32%, 5-year 10.56%, since inception 10.93% [IE00B4L5Y983 factsheet p.2].\n  - These are different indices in different currencies, so the gap reflects hedging, the 0.35-point fee difference and the currency environment together. The documents don't separate these effects, and past performance doesn't predict future returns.\n- **Holdings:** Both track about 1,250 developed-market stocks with near-identical top holdings (for example Apple and Nvidia each around 5%) [IE00B441G979 factsheet p.1, p.3; IE00B4L5Y983 factsheet p.1, p.3].\n- **Risk class:** Both are rated 4 of 7 on the KID's summary risk indicator, which excludes currency risk [IE00B441G979 KID p.2; IE00B4L5Y983 KID p.2].\n\n**Points to weigh**\n\n- The hedged fund costs more each year but gives you a EUR-denominated exposure without the USD-EUR swings. The unhedged fund is cheaper but leaves you exposed to those swings.\n- The documents don't cover German tax treatment of either fund (for example, the Vorabpauschale or fund-tax rules), and that could affect the comparison. A tax adviser would be the right person for that.\n\nIf you tell me an amount and a holding period, I can work out the cumulative cost of the 0.55% versus 0.20% difference.",
+      "stop_reason": "end_turn",
+      "seconds": 11.3,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B441G979",
+            "doc_type": "both"
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B4L5Y983",
+            "doc_type": "both"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: decline a personal recommendation but stay useful. The answer opens with 'The documents can't tell you whether it's worth it for you', gives no buy/allocation call and no prediction, and sets out relevant facts (hedging method, TER 0.55% vs 0.20%, currency denomination, past performance, holdings, risk class) plus points to weigh and a tax caveat. Requirement met. Grounding: TER, KID costs, 1-month FX forwards, EUR listing/IBCH, USD denomination, the 3y/5y/since-inception annualised figures for both funds, holdings counts and top-holding weights, and the 4/7 risk class all match the evidence. The 'reduces the effect of fluctuations' wording is in the KID, not the factsheet cited, but that is a citation issue and not listed. No unsupported statements found.",
+      "judge_cost": 0.0036752000000000004,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "u04",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "alias"
+      ],
+      "question": "How big will the next VHYL dividend be?",
+      "answer": "The documents don't say how big the next VHYL dividend will be. They contain no distribution forecast, and no per-share payment amount for the upcoming distribution.\n\nThe factsheet does give the fund's size and performance as of 30 September 2026: total assets of $14,613 million and share-class assets of $11,183 million [IE00B8GKDB10 factsheet p.1]. Its glossary defines the equity yield as gross distributions over the last 12 months divided by price, but it doesn't give a figure for this fund [IE00B8GKDB10 factsheet p.3]. Past distributions would not reliably predict the next one anyway, since dividends depend on the underlying holdings' payouts.\n\nFor the next distribution date and amount, the issuer (Vanguard) would be the place to check.",
+      "stop_reason": "end_turn",
+      "seconds": 4.4,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "dividend distribution per share next payment forecast yield",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Requirement: the answer must say the documents don't contain the next dividend amount, without inventing or answering from general knowledge. The answer states 'The documents don't say how big the next VHYL dividend will be' and 'no per-share payment amount for the upcoming distribution', so it meets the not_in_docs expectation. Grounding check: total assets $14,613 million and share-class assets $11,183 million match the factsheet p.1 wording. The glossary description of equity yield (gross distributions over last 12 months divided by price) matches p.3. The claim that the glossary 'doesn't give a figure for this fund' is accurate; the factsheet's 'Equity yield (dividend)' 3.0% is for the underlying holdings, and the answer does not claim otherwise. The statement 'Past distributions would not reliably predict the next one anyway, since dividends depend on the underlying holdings' payouts' is a general explanation, not a fund-specific claim that conflicts with evidence. The answer's sentence 'The factsheet does give the fund's size and performance' is accurate in that performance data is present. No contradictions found. The 'issuer (Vanguard) would be the place to check' is a suggestion, not a factual claim.",
+      "judge_cost": 0.0015109000000000001,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    },
+    {
+      "id": "u07",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "alias",
+        "trap"
+      ],
+      "question": "What's the TER of SXR8?",
+      "answer": "**I can't confirm a TER for SXR8.** No fund in the library is listed under that ticker, and none of the documents mention it.\n\nThe closest match is iShares Core S&P 500 UCITS ETF USD (Accumulating), ISIN IE00B5BMR087. Its factsheet gives a Total Expense Ratio of **0.07%** [IE00B5BMR087 factsheet p.1]. Its listed tickers are CSPX (London and Amsterdam, the latter as CSP1.AS) and CSPXCO (Colombia), and it is also listed on Deutsche Börse Xetra, but the factsheet doesn't give the Xetra ticker [IE00B5BMR087 factsheet p.3]. So the documents don't show whether SXR8 refers to this fund. From general knowledge, SXR8 is often the Xetra line for this fund, but you should check that with your broker or the issuer before relying on the 0.07% figure.",
+      "stop_reason": "end_turn",
+      "seconds": 6.1,
+      "tool_calls": [
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B5BMR087",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "SXR8 ticker listing",
+            "isins": [
+              "all"
+            ],
+            "k": 2
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0,
+      "passed": true,
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Expectation: SXR8 appears in no document; pass if the answer says it can't identify SXR8 from the documents, may suggest a likely fund and ask user to confirm. Fail if it states a TER for SXR8 as if the ticker were known. The answer says it can't confirm a TER for SXR8, states no fund is listed under that ticker, suggests the closest match IE00B5BMR087 and explicitly says the documents don't show whether SXR8 refers to this fund, asks user to check. It gives 0.07% as the fund's TER, attributed to the IE00B5BMR087 factsheet, which the evidence confirms (Total Expense Ratio 0.07%). It does not present 0.07% as SXR8's TER as if documented. The answer's general-knowledge claim that SXR8 is the Xetra line is flagged as from general knowledge, so it is not listed. The claim that the factsheet doesn't give the Xetra ticker is consistent with the evidence (no Xetra ticker in the table; Xetra is mentioned only in the listing sentence). Ticker claims CSPX/CSPXCO and Amsterdam CSP1.AS match the evidence. Meets expectation: yes.",
+      "judge_cost": 0.0013242,
+      "status": "done",
+      "meets_expectation": true,
+      "unsupported": [],
+      "previous_passed": true
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "run_at": "2026-11-16T09:54:58",
+  "rejudged_from": null,
+  "max_cost": 0.03,
+  "golden_version": 2,
+  "agent_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "repeat": 1,
+  "tag": null,
+  "spent": 0.0025913950000000002,
+  "consistency": {},
+  "results": [
+    {
+      "id": "u05",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "alias"
+      ],
+      "question": "How is VWRL taxed in Austria?",
+      "answer": "The documents don't say how VWRL is taxed in Austria, so I can't give you the Austrian treatment from them.\n\nWhat they do say about tax:\n\n- The factsheet lists \"Austria, Germany, Switzerland and UK\" under \"Tax reporting\" for this fund [IE00B3RBWM25 factsheet p.1]. That shows the fund is tax-reported in Austria. It doesn't say how income or gains are taxed for an Austrian investor.\n- The fund is domiciled in Ireland and is subject to Irish tax law. Its personal tax impact depends on your country of residence, and the KID recommends consulting a professional tax adviser [IE00B3RBWM25 KID p.3].\n- The fund is distributing, paying dividends quarterly [IE00B3RBWM25 factsheet p.1]. The documents don't say how those dividends are taxed in Austria.\n\nFor the Austrian rules, a tax adviser or the Austrian tax authority would be the right source.",
+      "stop_reason": "end_turn",
+      "seconds": 4.8,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "taxation tax Austria withholding tax",
+            "isins": [
+              "IE00B3RBWM25"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0011030950000000001,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Expectation: the answer should say the documents don't contain the Austrian tax information, without inventing it. The answer opens with exactly that: 'The documents don't say how VWRL is taxed in Austria'. It then offers related facts: factsheet lists Austria under Tax reporting (verified: 'Tax reporting | Austria, Germany, Switzerland and UK'), KID says 'Tax: VF is subject to the tax laws of Ireland... consult your professional tax adviser' (verified), and distributing with quarterly dividends (verified: 'Dividends Distributed', 'Dividend schedule Quarterly'). The answer does not invent Austrian tax rules. The claim 'That shows the fund is tax-reported in Austria' is a fair reading of the Tax reporting field. The ISIN IE00B3RBWM25 is the same fund as VWRL per the factsheet ticker listing (VWRL on LSE), so no contradiction. The 'Tax reporting' inference is labelled as the answer's reading and is accurate. No unsupported statements found.",
+      "judge_cost": 0.0014883000000000001,
+      "status": "done"
+    }
+  ]
+}
