@@ -1,14 +1,13 @@
 """
-The agent's tools: definitions the model sees + the Python functions that run them.
+The agent's tools: the definitions sent to the model and the functions that run them.
 
-A tool definition is a name, a description and a JSON schema for the input.
-The model never runs anything itself: it replies "please call
-read_fund_documents with {'isin': 'IE00BK5BQT80', 'doc_type': 'kid'}", our
-code runs the function, and sends back the result as text. So the description
-is effectively part of the prompt; it's how the model knows when a tool is useful.
+The model sees only each tool's name, description and input schema, so the
+descriptions say when to use the tool, as a prompt would. run_tool() executes a
+call and returns the result as text; errors go back to the model instead of
+being raised.
 
-Tool results are plain text with light XML-style tags rather than JSON: easier
-for the model to read, and the tags carry what it needs to cite (ISIN, doc, page).
+Tool results are plain text with XML-style tags, not JSON. The tags carry what
+the model needs to cite: ISIN, document and page.
 
 There is no tool to look up funds: the fund list is in the system prompt (prompt.py).
 """
@@ -23,6 +22,11 @@ from etf_assistant.retrieval.store import Hit, search
 
 K_PER_FUND_DEFAULT, K_PER_FUND_MAX = 3, 5
 K_GLOBAL_DEFAULT, K_GLOBAL_MAX = 8, 20
+# A search on this many funds or fewer returns their whole documents instead of passages.
+# The model otherwise searches a single fund, gets five passages and reports "the documents
+# don't state X" when X is on another page. Being told to read the documents instead (in
+# the prompt, in the tool description, in a note under the passages) didn't change that.
+WHOLE_DOCS_UP_TO = 2
 
 TOOLS = [
     {
@@ -49,7 +53,8 @@ TOOLS = [
             "document and page.\n"
             "With isins: the best k passages FOR EACH of these funds, grouped by fund. Use it to compare one "
             "detail across funds ('summary risk indicator', 'number of holdings'); isins=['all'] means every "
-            "fund in the library. A fund's passages may miss the answer: then read that fund's documents.\n"
+            "fund in the library. A fund's passages may miss the answer: then read that fund's documents. "
+            f"For {WHOLE_DOCS_UP_TO} funds or fewer it returns their whole documents instead of passages.\n"
             "Without isins: the best k passages across the whole library, for topics ('which funds use swaps')."
         ),
         "input_schema": {
@@ -136,11 +141,17 @@ def search_documents(query: str, isins: list[str] | None = None, doc_type: str |
         hits = search(query, k=min(max(k or K_GLOBAL_DEFAULT, 1), K_GLOBAL_MAX), mode="hybrid", doc_type=doc_type)
         return "\n\n".join(_passage(h, with_fund=True) for h in hits) or "No matching passages."
 
+    isins = _check_isins(isins)
+    if len(isins) <= WHOLE_DOCS_UP_TO:
+        docs = "\n\n".join(read_fund_documents(i, doc_type or "both") for i in isins)
+        return ("<note>For so few funds, these are their whole documents, not search results: "
+                "what isn't in here, the documents don't state.</note>\n\n" + docs)
+
     # One filtered search per fund: a global top-k would let a few funds with many similar
     # passages crowd out the rest. The query is embedded once (embed_query is cached).
     k = min(max(k or K_PER_FUND_DEFAULT, 1), K_PER_FUND_MAX)
     groups = []
-    for isin in _check_isins(isins):
+    for isin in isins:
         hits = search(query, k=k, mode="hybrid", isin=isin, doc_type=doc_type)
         body = "\n".join(_passage(h, with_fund=False) for h in hits) or "no matching passages"
         groups.append(f'<fund isin="{isin}" name="{_catalog()[isin].display_name}">\n{body}\n</fund>')

@@ -42,14 +42,23 @@ def test_per_fund_search_runs_one_filtered_search_per_fund(fake_search):
 
 
 def test_per_fund_search_caps_k_and_dedupes(fake_search):
-    tools.search_documents("TER", isins=[ISINS[0], ISINS[0]], k=50)
-    assert fake_search == [{"query": "TER", "k": tools.K_PER_FUND_MAX, "isin": ISINS[0], "doc_type": None}]
+    tools.search_documents("TER", isins=[*ISINS[:3], ISINS[0]], k=50)
+    assert fake_search == [{"query": "TER", "k": tools.K_PER_FUND_MAX, "isin": i, "doc_type": None} for i in ISINS[:3]]
 
 
 def test_global_search_has_no_fund_filter(fake_search):
     out = tools.search_documents("swap", k=4)
     assert fake_search[0]["isin"] is None and fake_search[0]["k"] == 4
     assert out.count("<passage ") == 4 and 'isin="' in out
+
+
+def test_search_on_one_or_two_funds_returns_their_whole_documents(fake_search, monkeypatch):
+    monkeypatch.setattr(tools, "read_fund_documents", lambda isin, doc_type: f"<document {isin} {doc_type}>")
+    out = tools.search_documents("Number of holdings", isins=ISINS[:2], k=5)
+    assert fake_search == []  # no passages to mistake for the documents
+    assert out.endswith(f"<document {ISINS[0]} both>\n\n<document {ISINS[1]} both>")
+    assert tools.search_documents("TER", isins=[ISINS[0], ISINS[0]], doc_type="kid").endswith(f"<document {ISINS[0]} kid>")
+    assert "<passage " in tools.search_documents("TER", isins=ISINS[:3])
 
 
 def test_unknown_isin_is_reported_to_the_model(fake_search):

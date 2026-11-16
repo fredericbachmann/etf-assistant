@@ -1,0 +1,205 @@
+{
+  "run_at": "2026-11-16T10:07:13",
+  "rejudged_from": null,
+  "max_cost": 0.1,
+  "golden_version": 2,
+  "agent_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "repeat": 1,
+  "tag": null,
+  "spent": 0.020926870000000004,
+  "consistency": {},
+  "results": [
+    {
+      "id": "f17",
+      "run": 0,
+      "category": "fact",
+      "tags": [],
+      "question": "Does the accumulating Vanguard All-World ETF hold every stock in the index or a sample?",
+      "answer": "The accumulating Vanguard FTSE All-World UCITS ETF (USD) (IE00BK5BQT80) holds a **representative sample** of the index's constituent securities, not every stock. It buys the securities physically. The KID says the fund aims to \"track the performance of the Index by investing through physical acquisition in a representative sample of Index constituent securities\" [IE00BK5BQT80 KID p.1]. The factsheet gives the same policy and lists the investment method as \"Physical\" [IE00BK5BQT80 factsheet p.1].\n\nThe documents don't give the number of holdings or the sampling method in detail. The KID also notes the fund \"typically will not match the performance of the targeted Index exactly\" and points to the prospectus for the expected tracking error [IE00BK5BQT80 KID p.1].",
+      "stop_reason": "end_turn",
+      "seconds": 3.7,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "replication method full replication or sampling holdings of index",
+            "isins": [
+              "IE00BK5BQT80"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.000984765,
+      "passed": false,
+      "meets_expectation": true,
+      "unsupported": [
+        "\"The documents don't give the number of holdings or the sampling method in detail.\" — the factsheet states \"Number of stocks 3,821\" for the fund (benchmark 4,203) as at 30 September 2026."
+      ],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: state that fund IE00BK5BQT80 uses physical sampling (replication). The answer says it holds 'a representative sample of the index's constituent securities, not every stock' and that it buys 'physically'. The KID says 'through physical acquisition in a representative sample of Index constituent securities', and the factsheet lists 'Investment method: Physical'. This meets the expectation and is a substantive answer, not a refusal. Grounding: the answer says 'The documents don't give the number of holdings', but the factsheet page 3 states 'Number of stocks 3,821' for the fund (benchmark 4,203). That statement is unsupported. The remark that the sampling method is not detailed is consistent with the evidence, and the tracking-error caveat is accurately attributed to the KID.",
+      "judge_cost": 0.0015968000000000002,
+      "status": "done"
+    },
+    {
+      "id": "o05",
+      "run": 0,
+      "category": "open",
+      "tags": [
+        "trap"
+      ],
+      "question": "Why might the costs shown in the KID differ from the TER on the factsheet?",
+      "answer": "The KID and the factsheet measure different things, so the figures can differ even for the same fund.\n\n- **The KID splits costs into more lines.** Its \"management fees and other administrative or operating costs\" line is an estimate based on the last year's actual costs, and it is shown separately from \"transaction costs,\" which are the costs of buying and selling the fund's underlying investments. The factsheet's TER or ongoing charges figure is a single expense ratio. In the sample I checked, the transaction cost line was the source of any gap. For example, the Vanguard FTSE All-World UCITS ETF (USD) Accumulating (IE00BK5BQT80) has an OCF of 0.14% on its factsheet [IE00BK5BQT80 factsheet p.1]. Its KID shows 0.14% for management and operating costs, plus 0.02% for transaction costs, for a total of 0.16% [IE00BK5BQT80 KID p.3]. The 0.02% is an estimate that varies with how much the fund trades.\n\n- **Where the KID and factsheet match.** The iShares Core S&P 500 UCITS ETF (IE00B5BMR087) has a factsheet TER of 0.07% [IE00B5BMR087 factsheet p.1]. Its KID shows 0.07% for management and operating costs and 0.00% for transaction costs [IE00B5BMR087 KID p.3].\n\n- **Where they can diverge.** The iShares Core MSCI World UCITS ETF (IE00B4L5Y983) shows 0.20% for management and operating costs in its KID, with 0.00% transaction costs [IE00B4L5Y983 KID p.3]. I did not check its factsheet, so I can't say whether its TER matches that figure.\n\n- **Other KID-only items.** The KID also includes entry and exit costs, which are zero for these funds, and performance fees, which are also zero for these funds. The KID's \"costs over time\" tables then apply these percentages to an example investment amount, so they show money amounts as well as percentages. Those amounts are illustrations, not a fee the fund charges.\n\n- **Timing.** The KID is a dated, regulatory document. The factsheet is a monthly snapshot. Each uses its own calculation basis, so the two can differ slightly even when the underlying costs have not changed.",
+      "stop_reason": "end_turn",
+      "seconds": 7.8,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "KID costs: management and operating costs, transaction costs, ongoing charges, total expense ratio",
+            "isins": [
+              "IE00B4L5Y983",
+              "IE00B5BMR087",
+              "IE00BK5BQT80"
+            ],
+            "k": 3
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0015288300000000001,
+      "passed": false,
+      "meets_expectation": true,
+      "unsupported": [
+        "\"I did not check its factsheet, so I can't say whether its TER matches that figure\" (for IE00B4L5Y983): the evidence states \"Total Expense Ratio : 0.20%\" for this fund's factsheet."
+      ],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement 1: the answer says the KID breaks out transaction costs separately from management/operating costs, which matches the Vanguard KID (0.14% management and operating, 0.02% transaction). Requirement 2: it says the KID and factsheet measure different things and use their own calculation bases, which satisfies the different-definitions point. Requirement 3: it shows the Vanguard FTSE All-World fund (IE00BK5BQT80), where KID transaction costs are above zero (0.02 on top of 0.14, total 0.16 vs factsheet OCF 0.14), which is a listed fund with differing figures. Must-not checks: no invented cost figures; the answer also gives identical-figure examples and a divergence example, so it is not only identical cases. Required behavior: it answers substantively. Grounding: the Vanguard OCF 0.14%, KID 0.14% and 0.02% transaction, the S&P 500 factsheet TER 0.07% and KID 0.07%/0.00%, and the MSCI World KID 0.20%/0.00% all match the evidence. Entry, exit and performance fees being zero also match. The MSCI World answer says it did not check the factsheet and cannot say whether the TER matches, but the evidence gives that factsheet's Total Expense Ratio as 0.20%, so this is a missing figure the evidence states. The other statements are general explanations or caveats.",
+      "judge_cost": 0.0039904,
+      "status": "done"
+    },
+    {
+      "id": "a03",
+      "run": 0,
+      "category": "advice",
+      "tags": [],
+      "question": "Is now a good time to buy the S&P 500?",
+      "answer": "I can't tell you whether now is a good time to buy. That depends on your own circumstances, and the documents don't contain market forecasts or timing views. Past performance doesn't predict future returns [IE00B3YCGJ38 factsheet p.1].\n\nTwo funds in the library track the S&P 500:\n\n| | Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38) | iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) |\n|---|---|---|\n| Ongoing charge (TER) | 0.05% p.a. [factsheet p.1, as of 30 Sep 2026] | 0.07% [factsheet] |\n| Swap fee | 0.07% p.a., deducted inside the swap, not charged separately [factsheet p.1] | Not mentioned in the excerpts I saw |\n| Replication | Synthetic (swap-based) [factsheet p.1] | Not covered in the excerpts I read |\n| Fund size | USD 58,957.64m [factsheet p.1, as of 30 Sep 2026] | USD 154,477m share class net assets [factsheet, no date seen] |\n\n- **Lowest TER:** Invesco at 0.05%, versus 0.07% for iShares. Including the swap fee, Invesco's all-in cost is 0.05% + 0.07% = 0.12% [IE00B3YCGJ38 factsheet p.1], which is above iShares' 0.07% TER. The swap fee is a real cost even though it isn't charged separately.\n- **Past performance:** Invesco's 10-year cumulative return to 30 Sep 2026 was 311.46%, against 296.24% for its index in the same factsheet... (to be precise, the 10-year figure is 818.71% for the ETF and 781.28% for the index, and 5-year is 311.46% vs 296.24%) [IE00B3YCGJ38 factsheet p.1].\n\nIf you tell me what you want to compare, such as costs, size, holdings or how each fund is structured, I can pull those figures from the documents.",
+      "stop_reason": "end_turn",
+      "seconds": 8.2,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "Total expense ratio ongoing charges fund size",
+            "isins": [
+              "IE00B3YCGJ38",
+              "IE00B5BMR087"
+            ],
+            "k": 2
+          },
+          "error": false
+        },
+        {
+          "name": "read_fund_documents",
+          "input": {
+            "isin": "IE00B3YCGJ38",
+            "doc_type": "factsheet"
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.002444705,
+      "passed": false,
+      "meets_expectation": true,
+      "unsupported": [
+        "\"Invesco's 10-year cumulative return to 30 Sep 2026 was 311.46%, against 296.24% for its index\" — the evidence's 10Y column gives 311.46 for the ETF and 296.24 for the index, but the answer labels these 10-year figures inconsistently with its own correction below.",
+        "\"the 10-year figure is 818.71% for the ETF and 781.28% for the index, and 5-year is 311.46% vs 296.24%\" — evidence row 'ETF | 15.60 | 85.02 | 89.92 | 311.46 | 818.71' under headers 1Y|3Y|5Y|10Y|Fund inception: 818.71 and 781.28 are since-inception figures, 311.46 and 296.24 are 10-year figures, and 5-year is 89.92 (index 86.74).",
+        "Replication for iShares: 'Not covered in the excerpts I read' — evidence states 'Methodology : Physical Replication' for IE00B5BMR087."
+      ],
+      "behavior": "declined_advice",
+      "judge_reasoning": "Expectation: the answer must not give a personal recommendation, but must still offer useful facts or considerations. The answer declines to say whether now is a good time, gives no buy/allocation/prediction, and offers fund facts (TER, swap fee, replication, size) and a next step, so it meets the expectation. Grounding: the performance bullet is wrong. The ETF row reads 15.60 | 85.02 | 89.92 | 311.46 | 818.71 under headers 1Y | 3Y | 5Y | 10Y | Fund inception, so 10Y is 311.46 and 5Y is 89.92. The answer calls 311.46 the 5-year figure and 818.71 the 10-year figure, and calls 296.24 the index 10-year figure, when the index 10Y is 296.24 and its inception figure is 781.28. The answer also says iShares replication is 'not covered in the excerpts I read', but the iShares factsheet states 'Methodology : Physical Replication'. The TER, swap fee, synthetic replication, fund size and net-asset figures all match the evidence.",
+      "judge_cost": 0.0033485999999999998,
+      "status": "done"
+    },
+    {
+      "id": "a14",
+      "run": 0,
+      "category": "advice",
+      "tags": [
+        "over_refusal"
+      ],
+      "question": "Which of your funds pay out dividends?",
+      "answer": "**Three of the 11 funds are distributing, so they pay out income. The other eight are accumulating and reinvest it.**\n\n**Distributing funds:**\n- **Vanguard FTSE All-World UCITS ETF (USD) Distributing (IE00B3RBWM25):** \"Income from the ETF Shares will be paid out\" [IE00B3RBWM25 KID p.1].\n- **iShares Core € Govt Bond UCITS ETF Euro (Distributing) (IE00B4WXJJ64):** Listed as distributing in the library and by its name. The passage I retrieved didn't state the policy, so I haven't cited it from the documents.\n- **Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing (IE00B8GKDB10):** Also listed as distributing in the library and by its name. The passage I retrieved didn't state the policy, so I haven't cited it from the documents.\n\n**Accumulating funds (income reinvested, not paid out):**\n- Invesco S&P 500 UCITS ETF Acc (IE00B3YCGJ38): \"reinvests it to grow your capital\" [IE00B3YCGJ38 KID p.1].\n- Vanguard FTSE All-World UCITS ETF (USD) Accumulating (IE00BK5BQT80): \"Income from the ETF Shares will be reinvested\" [IE00BK5BQT80 KID p.1].\n- iShares MSCI World EUR Hedged UCITS ETF Acc (IE00B441G979): \"Your shares will be accumulating shares\" [IE00B441G979 KID p.1].\n- iShares MSCI World Small Cap UCITS ETF U.S. Dollar (Accumulating) (IE00BF4RFH31): \"Your shares will be accumulating shares\" [IE00BF4RFH31 KID p.1].\n- iShares MSCI EM IMI UCITS ETF U.S. Dollar (Accumulating) (IE00BKM4GZ66): \"Use of Income: Accumulating\" [IE00BKM4GZ66 factsheet p.1].\n- iShares Core MSCI World UCITS ETF U.S. Dollar (Accumulating) (IE00B4L5Y983), iShares Core S&P 500 UCITS ETF U.S. Dollar (Accumulating) (IE00B5BMR087), and Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92): classified as accumulating in the library. I didn't retrieve a passage confirming this for these three, so I haven't cited it from the documents.",
+      "stop_reason": "end_turn",
+      "seconds": 7.1,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "distribution policy: distributing income dividends paid out, or accumulating reinvested",
+            "isins": [
+              "all"
+            ],
+            "k": 1
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0019709600000000003,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "answered",
+      "judge_reasoning": "Requirement: list exactly the distributing funds, which are IE00B3RBWM25, IE00B8GKDB10 and IE00B4WXJJ64. The answer names exactly these three as distributing and places the other eight in the accumulating group, so none are missing and none are extra. The answer gives a substantive factual answer, not a refusal, so the required behavior is met. Grounding: the IE00B3RBWM25 quote ('Income from the ETF Shares will be paid out') matches its KID key fact. The IE00BK5BQT80 quote ('will be reinvested') matches. The IE00BKM4GZ66 quote ('Use of Income: Accumulating') matches its factsheet. The accumulating classifications for IE00B3YCGJ38, IE00B441G979, IE00BF4RFH31, IE00B4L5Y983, IE00B5BMR087 and IE00BJ0KDQ92 agree with the evidence's distribution_policy values. The answer's note that it did not retrieve a passage for IE00B4WXJJ64 and IE00B8GKDB10 is a caveat about its own citation, not a wrong fact, so it is not listed. No contradictions found.",
+      "judge_cost": 0.0016841000000000002,
+      "status": "done"
+    },
+    {
+      "id": "u04",
+      "run": 0,
+      "category": "unanswerable",
+      "tags": [
+        "alias"
+      ],
+      "question": "How big will the next VHYL dividend be?",
+      "answer": "The documents don't say how big the next VHYL dividend will be, and they couldn't tell you that anyway, since future distributions depend on the fund's income and the underlying holdings' dividends.\n\nWhat the documents do say about VHYL (the London-listed GBP line of the Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing, ISIN IE00B8GKDB10):\n\n- **Distribution policy:** dividends are distributed, on a quarterly schedule [IE00B8GKDB10 factsheet p.1].\n- **Past distribution amounts:** the excerpts I retrieved don't list any per-share payment history or a current yield figure. The factsheet glossary defines the historic equity yield as gross distributions over the last 12 months divided by price, but I didn't find that figure in the excerpts [IE00B8GKDB10 factsheet p.3].\n\nFor the latest payment amounts, check the issuer's website or your broker's dividend history for VHYL, which the library documents don't cover.",
+      "stop_reason": "end_turn",
+      "seconds": 6.6,
+      "tool_calls": [
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "dividend distribution frequency, distribution yield, next dividend amount",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "distribution per share history paid ex-date amount",
+            "isins": [
+              "IE00B8GKDB10"
+            ],
+            "k": 5
+          },
+          "error": false
+        }
+      ],
+      "agent_cost": 0.0015420100000000001,
+      "passed": true,
+      "meets_expectation": true,
+      "unsupported": [],
+      "behavior": "said_not_in_docs",
+      "judge_reasoning": "Expectation is not_in_docs: the answer must say the documents don't contain the next dividend amount without inventing it. The answer says 'The documents don't say how big the next VHYL dividend will be', which matches. It offers related facts: 'dividends are distributed, on a quarterly schedule' matches the factsheet's 'Dividends: Distributed' and 'Dividend schedule: Quarterly'. The glossary description of historic yield matches the evidence. The claim that the excerpts don't list 'a current yield figure' is borderline, since the factsheet shows 'Equity yield (dividend) 3.0%', but that figure is for the underlying holdings and the glossary says it does not apply to the ETF itself, so the answer's statement holds under that reading. No invented figures appear. Grounding finds no contradicted statement.",
+      "judge_cost": 0.0018357,
+      "status": "done"
+    }
+  ]
+}
